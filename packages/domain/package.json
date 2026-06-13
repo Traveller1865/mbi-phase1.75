@@ -1,0 +1,16 @@
+{
+  "name": "@mbi/domain",
+  "version": "1.1.0",
+  "description": "MBI Scoring Engine — Portable TypeScript Domain Package",
+  "main": "./index.ts",
+  "type": "module",
+  "scripts": {
+    "test": "node --experimental-vm-modules node_modules/.bin/jest --testPathPattern='__tests__'",
+    "test:ts": "npx tsx __tests__/scoring.test.ts",
+    "typecheck": "tsc --noEmit"
+  },
+  "devDependencies": {
+    "typescript": "^5.4.0",
+    "tsx": "^4.0.0"
+  }
+}

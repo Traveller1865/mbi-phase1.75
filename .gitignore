@@ -1,0 +1,46 @@
+# ─── Secrets & credentials (highest priority — never commit) ───
+ios/MBI/MBI/Secrets.swift
+ios/MBI/MBI/Secre.swift
+.env
+.env.*
+*.env
+.mcp.json
+# Claude Code local state — holds tokens/keys/passwords in the permission allowlist
+.claude/
+# Apple signing assets
+*.pem
+*.key
+*.p12
+*.cer
+*.mobileprovision
+
+# ─── macOS metadata ───
+._*
+.DS_Store
+
+# ─── Swift / Xcode ───
+DerivedData/
+build/
+*.xcuserstate
+xcuserdata/
+*.xcscmblueprint
+*.xccheckout
+.swiftpm/
+.build/
+
+# ─── Node / TypeScript ───
+node_modules/
+dist/
+*.log
+npm-debug.log*
+
+# ─── Supabase local artifacts ───
+supabase/.temp/
+supabase/.branches/
+backend/supabase/.temp/
+backend/supabase/.branches/
+
+# ─── Raw data dumps (data, not source — exceed GitHub size limits) ───
+apple_health_export*/
+*/apple_health_export*/
+*.xml.zip

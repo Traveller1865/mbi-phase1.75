@@ -1,0 +1,107 @@
+# backend/supabase/config.toml
+# MBI Phase 1 — Supabase Project Configuration
+
+[api]
+enabled = true
+port = 54321
+schemas = ["public", "storage", "graphql_public"]
+extra_search_path = ["public", "extensions"]
+max_rows = 1000
+
+[db]
+port = 54322
+shadow_port = 54320
+major_version = 15
+
+[studio]
+enabled = true
+port = 54323
+api_url = "http://localhost"
+
+[inbucket]
+enabled = true
+port = 54324
+smtp_port = 54325
+pop3_port = 54326
+
+[storage]
+enabled = true
+file_size_limit = "50MiB"
+
+[auth]
+enabled = true
+site_url = "http://localhost:3000"
+additional_redirect_urls = ["https://localhost:3000"]
+jwt_expiry = 3600
+enable_refresh_token_rotation = true
+refresh_token_reuse_interval = 10
+enable_signup = true
+
+[auth.email]
+enable_signup = true
+double_confirm_changes = true
+enable_confirmations = false
+
+[edge_runtime]
+enabled = true
+policy = "oneshot"
+inspector_port = 8083
+
+[functions.ingest]
+verify_jwt = false
+
+[functions.score]
+verify_jwt = false
+
+[functions.narrate]
+verify_jwt = false
+
+[functions.admin]
+verify_jwt = false
+
+[functions.compute-outcome-windows]
+verify_jwt = false
+
+[functions.narrate-detail]
+verify_jwt = false
+
+[functions.narrate-trend]
+verify_jwt = false
+
+[functions.narrate-domains-pattern]
+verify_jwt = false
+
+[functions.narrate-domain-expanded]
+verify_jwt = false
+
+[functions.narrate-domains-30day]
+verify_jwt = false
+
+[functions.horizon-classify]
+verify_jwt = false
+
+[functions.narrate-horizon]
+verify_jwt = false
+
+[functions.escalation-alert]
+verify_jwt = true
+
+# ── Pipeline Performance Architecture (June 2026) ──────────────────────────
+# ping: keep-warm heartbeat — no JWT required (cron calls it)
+[functions.ping]
+verify_jwt = false
+
+# score-orchestrator: single client entry point for full pipeline
+[functions.score-orchestrator]
+verify_jwt = false
+
+# ontology-classify: deterministic node activation + pathway classification (Ontology Engine v1)
+[functions.ontology-classify]
+verify_jwt = false
+
+# fallback-orchestrator: hourly 5pm-local timezone fallback (service-role only)
+[functions.fallback-orchestrator]
+verify_jwt = false
+
+[analytics]
+enabled = false

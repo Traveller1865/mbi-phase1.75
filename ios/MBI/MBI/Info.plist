@@ -1,0 +1,43 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+<plist version="1.0">
+<dict>
+	<key>CFBundleDisplayName</key>
+	<string>MBI</string>
+	<key>CFBundleExecutable</key>
+	<string>$(EXECUTABLE_NAME)</string>
+	<key>CFBundleIdentifier</key>
+	<string>com.chronos.mbi.MBI</string>
+	<key>CFBundleName</key>
+	<string>MBI</string>
+	<key>CFBundlePackageType</key>
+	<string>APPL</string>
+	<key>CFBundleShortVersionString</key>
+	<string>1.0</string>
+	<key>CFBundleVersion</key>
+	<string>1</string>
+	<key>NSFaceIDUsageDescription</key>
+	<string>Chronos uses Face ID to protect your health data when you return to the app.</string>
+	<key>NSHealthShareUsageDescription</key>
+	<string>Mynd &amp; Bodi reads your Apple Watch data to calculate your daily Chronos Resilience Score.</string>
+	<key>UIAppFonts</key>
+	<array>
+		<string>CormorantGaramond-VariableFont_wght.ttf</string>
+		<string>CormorantGaramond-Italic-VariableFont_wght.ttf</string>
+		<string>Jost-VariableFont_wght.ttf</string>
+	</array>
+	<key>UILaunchScreen</key>
+	<dict/>
+	<key>UISupportedInterfaceOrientations</key>
+	<array>
+		<string>UIInterfaceOrientationLandscapeLeft</string>
+		<string>UIInterfaceOrientationLandscapeRight</string>
+		<string>UIInterfaceOrientationPortrait</string>
+		<string>UIInterfaceOrientationPortraitUpsideDown</string>
+	</array>
+	<key>UISupportedInterfaceOrientations~ipad</key>
+	<array>
+		<string>UIInterfaceOrientationPortrait</string>
+	</array>
+</dict>
+</plist>
