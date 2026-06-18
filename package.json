@@ -1,0 +1,10 @@
+{
+  "name": "mbi-chronos",
+  "private": true,
+  "version": "1.75.0",
+  "description": "MBI Chronos — backend (Supabase Edge Functions / Deno) + iOS. Domain logic canonical at backend/supabase/functions/_shared/domain.",
+  "scripts": {
+    "test:domain": "deno test backend/supabase/functions/_shared/domain/__tests__/",
+    "test:integration": "deno test --allow-net --allow-env backend/supabase/functions/_tests_integration/"
+  }
+}
