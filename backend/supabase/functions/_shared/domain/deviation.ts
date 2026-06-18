@@ -1,4 +1,4 @@
-// packages/domain/deviation.ts
+// backend/supabase/functions/_shared/domain/deviation.ts
 // MBI Scoring Engine — Deviation Detection
 // Version: 1.4 | Learning Foundation v1.0 (May 2026)
 // D3: sleep_efficiency→sleep_continuity; standalone >=8% hard removed; corroboration required

@@ -1,4 +1,4 @@
-// packages/domain/failstates.ts
+// backend/supabase/functions/_shared/domain/failstates.ts
 // MBI Scoring Engine — Fail State Logic
 // Version: 1.3 | Scoring Engine Architecture Review v1.0 (May 2026)
 // D6: chronos_score<=39 Redline requires confidence_tier "guarded" or "full"

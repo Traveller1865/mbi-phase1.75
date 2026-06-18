@@ -1,4 +1,4 @@
-// packages/domain/range.ts
+// backend/supabase/functions/_shared/domain/range.ts
 // MBI Baseline Range Architecture v1.0 — Phase 2 Sprint 1
 // Implements: five-state trust model, p20/p80 percentile boundaries,
 //             HRV 7-day smoothing, zone classification (Layer 1).

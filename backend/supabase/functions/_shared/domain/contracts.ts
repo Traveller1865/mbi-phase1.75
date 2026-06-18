@@ -1,4 +1,4 @@
-// packages/domain/contracts.ts
+// backend/supabase/functions/_shared/domain/contracts.ts
 // MBI Scoring Engine — Type Contracts
 // Version: 1.5 | Pre-Beta Sprint (May 2026)
 // Changes v1.5: Yellowline added to ScoreBand; 8 p10/p90 percentile fields

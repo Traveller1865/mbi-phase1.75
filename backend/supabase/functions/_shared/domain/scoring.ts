@@ -1,4 +1,4 @@
-// packages/domain/scoring.ts
+// backend/supabase/functions/_shared/domain/scoring.ts
 // MBI Scoring Engine — Score Formula, Bands, Alpha, Domain Scores
 // Version: 1.5 | Pre-Beta Sprint (May 2026)
 // v1.5: Yellowline band added (60–69). Recovering now 70–79. Drifting 40–59 unchanged.

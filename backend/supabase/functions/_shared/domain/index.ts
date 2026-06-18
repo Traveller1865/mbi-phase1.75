@@ -1,4 +1,4 @@
-// packages/domain/index.ts
+// backend/supabase/functions/_shared/domain/index.ts
 // MBI Scoring Engine — Public API
 // Version: 1.4 | Baseline Range Architecture v1.0 (May 2026)
 
