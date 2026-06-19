@@ -23,7 +23,7 @@ import {
   computeValidDays, computeTrustState, computeHRV7dRollingAvg,
   computeRangePercentiles, classifyDriverZone,
 } from "../../functions/_shared/domain/index.ts";
-import type { DeclineSignal } from "../../functions/_shared/domain/index.ts";
+import type { DeclineSignal, DeviationState } from "../../functions/_shared/domain/index.ts";
 import { verifyCallerOwnsUser } from "../../functions/_shared/auth.ts";
 
 const SUPABASE_URL = Deno.env.get("SUPABASE_URL")!;
@@ -225,7 +225,7 @@ serve(async (req) => {
         const prevSC = yesterday?.sleep_continuity_pct ?? null;
         const scBaseline = baseline?.sleep_continuity_avg ?? null;
         if (prevSC === null || scBaseline === null || scBaseline === 0) return {};
-        let prevSleepContinuityDeviation: number;
+        let prevSleepContinuityDeviation: DeviationState;
         if (prevSC < 70) {
           prevSleepContinuityDeviation = -2; // absolute hard — standalone threshold
         } else {
@@ -272,15 +272,19 @@ serve(async (req) => {
         })
       : null;
 
-    const zone_2 = percentiles
+    // zone_2 is only meaningful when a second distinct driver exists; when driver_2
+    // is null (a single weighted metric — see selectTopDrivers) there is no second
+    // zone to classify, so leave it null rather than classifying a null metric.
+    const driver2 = result.driver_2;
+    const zone_2 = (percentiles && driver2)
       ? classifyDriverZone({
-          metric:       result.driver_2,
-          todayValue:   getMetricValue(input, result.driver_2),
+          metric:       driver2,
+          todayValue:   getMetricValue(input, driver2),
           hrv7dAvg,
           date,
           percentiles,
           trustState,
-          isHardFlagged: hardFlagged.has(result.driver_2),
+          isHardFlagged: hardFlagged.has(driver2),
         })
       : null;
 
@@ -297,7 +301,7 @@ serve(async (req) => {
       // rows from reaching baseline computation, making the original strict guard redundant.
       const requiredFields = ["resting_hr_avg", "sleep_duration_avg"] as const;
       const hasMinimumData = requiredFields.every(
-        (field) => (baseline as Record<string, unknown>)[field] != null
+        (field) => baseline[field] != null
       );
 
       if (!hasMinimumData) {
