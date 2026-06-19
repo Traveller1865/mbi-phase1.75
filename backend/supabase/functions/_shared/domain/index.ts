@@ -5,7 +5,8 @@
 export * from "./contracts.ts";
 export { computeBaseline } from "./baseline.ts";
 export { computeDeviations, METRIC_WEIGHTS } from "./deviation.ts";
-export { scoreDay, getScoreBand, selectNudgeDomain } from "./scoring.ts";
+export { scoreDay, getScoreBand, selectNudgeDomain, computeDeclineSignal } from "./scoring.ts";
+export type { DeclineSignalInput } from "./scoring.ts";
 export { selectTopDrivers } from "./drivers.ts";
 export { computeFailState } from "./failstates.ts";
 export {

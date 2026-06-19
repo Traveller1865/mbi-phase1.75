@@ -1,12 +1,15 @@
 // backend/supabase/functions/_shared/domain/contracts.ts
 // MBI Scoring Engine — Type Contracts
-// Version: 1.5 | Pre-Beta Sprint (May 2026)
+// Version: 1.6 | Pre-Beta Sprint (June 2026)
+// Changes v1.6: Yellowline removed from ScoreBand (Drifting expands to 40–69); new
+//               DeclineSignal type + decline_signal field on ScoringResult — a
+//               momentum signal (decline from the upper range), not a band.
 // Changes v1.5: Yellowline added to ScoreBand; 8 p10/p90 percentile fields
 //               added to Baseline (sleep, steps, active_minutes); range_trust_state
 //               added to ScoringResult row (written to daily_scores in addition to baselines)
 // Changes v1.4: ZoneState + RangeTrustState types; zone_1/zone_2/range_trust_state on ScoringResult
 
-export const DOMAIN_VERSION = "1.5";
+export const DOMAIN_VERSION = "1.6";
 
 export type ZoneState =
   | "elevated"
@@ -104,8 +107,13 @@ export type MetricName =
   | "stand_hours"
   | "resting_energy";
 
-export type ScoreBand = "Thriving" | "Recovering" | "Yellowline" | "Drifting" | "Redline";
+export type ScoreBand = "Thriving" | "Recovering" | "Drifting" | "Redline";
 export type FailState = "Redline" | "Drift" | "Ghost-Healthy" | "Ghost-AtRisk" | null;
+
+// Momentum signal (v1.6) — fires when a user in the upper range (score ≥ 70) has
+// declined meaningfully over the past week. Separate field from score_band, never
+// an override. Lowercase by spec (persisted to daily_scores.decline_signal).
+export type DeclineSignal = "yellowline" | null;
 
 export interface DomainScores {
   d1_autonomic: number | null;
@@ -118,6 +126,7 @@ export interface DomainScores {
 export interface ScoringResult {
   chronos_score: number | null;
   score_band: ScoreBand | null;
+  decline_signal: DeclineSignal;
   health_score: number | null;
   risk_score: number | null;
   alpha: number | null;

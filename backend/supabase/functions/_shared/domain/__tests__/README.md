@@ -13,7 +13,8 @@ code output and not to code comments. A test must be able to fail when the code 
 
 | Test group | Traces to |
 |---|---|
-| **Score bands** (80+/70–79/60–69 Yellowline/40–59/<40) | Founder approval (2026-06) + Canonical Backend Architecture v1.2 + `contracts.ts` v1.5 `ScoreBand` |
+| **Score bands** (v1.6: 80+ Thriving / 70–79 Recovering / 40–69 Drifting / <40 Redline) | Founder approval (2026-06) + Canonical Backend Architecture v1.2 + `contracts.ts` v1.6 `ScoreBand` |
+| **Decline signal** (Yellowline momentum: ≥70 & ≥5pt decline vs 5–7d ref, ≥5 scored-day gate, hysteresis) | Yellowline Build Handoff v1.0 §3 + `contracts.ts` v1.6 `DeclineSignal` |
 | **Determinism** (identical inputs → identical outputs) | Non-Negotiable #1 |
 | **Within-user primacy** (personal baselines, not population constants) | Non-Negotiable #2 |
 | **Provisional / null-baseline** (no synthetic score) | D12 (four-tier confidence model) |

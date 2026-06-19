@@ -329,8 +329,7 @@ async function buildDomainPatternInput(supabase: any, userId: string, date: stri
   const patternMap: Record<string, string> = {
     Thriving:   "thriving",
     Recovering: "recovering",
-    Yellowline: "trending_down",
-    Drifting:   "trending_down",
+    Drifting:   "trending_down",   // v1.6: 60–69 now resolves here (was Yellowline → trending_down)
     Redline:    "at_risk",
   };
   const pattern_type = patternMap[row.score_band] ?? "recovering";

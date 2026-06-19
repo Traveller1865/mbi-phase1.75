@@ -7,6 +7,8 @@
 //   1.4 ← Range Architecture v1.0: zone_1/zone_2 context, trust-state framing rules, UX language guide
 //   1.5 ← Pre-Beta Sprint: Yellowline band context; CALM narrative branch (all signals within range)
 //   2.0 ← Brief expansion: raw metric values injected, domain scores injected, full-body synthesis instructions, 3-sentence rule
+// Domain v1.6 ← Yellowline is now a momentum signal (decline_signal), not a band. Band context
+//               drops Yellowline; prompt gains decline_signal framing + Drifting sub-range tone split.
 
 import { serve } from "https://deno.land/std@0.177.0/http/server.ts";
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
@@ -19,7 +21,7 @@ const ANTHROPIC_API_KEY = Deno.env.get("ANTHROPIC_API_KEY")!;
 const MODEL                = "claude-sonnet-4-6";
 const PROMPT_VERSION       = "2.0";
 const NUDGE_POLICY_VERSION = "v1.0";
-const DOMAIN_VERSION       = "1.5"; // must match contracts.ts DOMAIN_VERSION
+const DOMAIN_VERSION       = "1.6"; // must match contracts.ts DOMAIN_VERSION
 
 // ─────────────────────────────────────────
 // METRIC DISPLAY NAMES
@@ -288,6 +290,7 @@ const TRUST_STATE_FRAMING: Record<RangeTrustState, string> = {
 function buildPrompt(input: {
   chronos_score: number;
   score_band: string;
+  decline_signal: string | null;   // ← v1.6 momentum signal ("yellowline" | null)
   driver_1: string;
   driver_2: string;
   driver_1_context: string;   // ← S1-003
@@ -316,7 +319,6 @@ function buildPrompt(input: {
   const bandContext = {
     Thriving:   "The user is in strong recovery. Maintain momentum.",
     Recovering: "The user is in a mild stress load but within adaptive range.",
-    Yellowline: "The user is in the early decline zone — not alarming, but worth paying attention to. Use a grounded, constructive tone. Acknowledge the direction without catastrophising.",
     Drifting:   "Risk is accumulating. The user needs attention before it compounds.",
     Redline:    "Acute physiological stress. Calm and supportive tone. Not alarming.",
   }[input.score_band] ?? "";
@@ -368,6 +370,22 @@ A score below 50 indicates below-baseline performance for that system. A score a
 - Avoid phrases that imply fragility or edge-case thinking`
     : "";
 
+  // Decline signal (v1.6, Change B): the user is still in the upper range by band, but
+  // their score has fallen meaningfully over the past week. Surface the momentum shift —
+  // this narrative must NOT read identically to a stable user at the same score.
+  const declineSection = input.decline_signal === "yellowline"
+    ? `MOMENTUM SIGNAL — DECLINE DETECTED: The user's score has declined meaningfully over the past week, even though their current band is still in the upper range. Emphasize what is shifting and why it matters, not just where the score currently sits. This is an early-intercept signal — the goal is to interrupt complacency, not to alarm. Name the downward trajectory plainly and constructively; do not write as if the user is stable.`
+    : "";
+
+  // Drifting sub-range differentiation (v1.6, Change C): Drifting now spans 40–69, a wide
+  // band. Upper Drifting (60–69) is recoverable-with-attention; lower Drifting (40–59) warrants
+  // clearer urgency. Tone must differ across the two ranges.
+  const driftingSubRangeSection = input.score_band === "Drifting"
+    ? (input.chronos_score >= 60
+        ? `DRIFTING SUB-RANGE (upper, score ${input.chronos_score}): Use awareness language — something is slipping but the situation is recoverable with attention. Do not use high-urgency or alarming framing.`
+        : `DRIFTING SUB-RANGE (lower, score ${input.chronos_score}): Use clearer urgency — sustained patterns need to be addressed. Be direct that this is more than a momentary dip, while staying within wellness (non-clinical) framing.`)
+    : "";
+
   return `You are the voice of Mynd & Bodi Institute, a prevention-first health intelligence platform.
 
 Your role is to translate physiological data into plain-language wellness context. You are a trusted, warm, knowledgeable guide — not a clinician.
@@ -410,6 +428,8 @@ ${calmSection}
 ${domainScoresContext}
 
 BAND CONTEXT: ${bandContext}
+${driftingSubRangeSection}
+${declineSection}
 ${deltaContext}
 ${provisionalNote}
 
@@ -644,6 +664,7 @@ serve(async (req) => {
     const narrativeInput = {
       chronos_score: score.chronos_score,
       score_band: score.score_band,
+      decline_signal: score.decline_signal ?? null,   // ← v1.6 momentum signal
       driver_1: score.driver_1,
       driver_2: score.driver_2,
       driver_1_context: driver1Context,   // ← S1-003

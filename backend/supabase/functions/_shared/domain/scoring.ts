@@ -1,6 +1,9 @@
 // backend/supabase/functions/_shared/domain/scoring.ts
 // MBI Scoring Engine — Score Formula, Bands, Alpha, Domain Scores
-// Version: 1.5 | Pre-Beta Sprint (May 2026)
+// Version: 1.6 | Pre-Beta Sprint (June 2026)
+// v1.6: Yellowline removed as a band — Drifting now spans 40–69. Yellowline is now a
+//       momentum signal (decline_signal): fires when score ≥70 and the score has
+//       declined ≥5pts vs a reference 5–7 days ago. Pure computeDeclineSignal added.
 // v1.5: Yellowline band added (60–69). Recovering now 70–79. Drifting 40–59 unchanged.
 // D12: Removed hardcoded fallback of 70; four-tier confidence model
 // D11: pre_drift_signal detection (score>59, 5-day decline >15pts)
@@ -9,7 +12,7 @@
 // Range v1.0: zone_1, zone_2, range_trust_state on ScoringResult
 
 import type {
-  Baseline, ConfidenceTier, DailyInput, DomainScores, MetricDeviation,
+  Baseline, ConfidenceTier, DailyInput, DeclineSignal, DomainScores, MetricDeviation,
   MetricName, ReserveFlag, ScoreBand, ScoringResult, ZoneState, RangeTrustState,
 } from "./contracts.ts";
 import { DOMAIN_VERSION } from "./contracts.ts";
@@ -34,9 +37,36 @@ function computeAlpha(deviations: MetricDeviation[]): number {
 export function getScoreBand(score: number): ScoreBand {
   if (score >= 80) return "Thriving";
   if (score >= 70) return "Recovering";
-  if (score >= 60) return "Yellowline";  // caution zone — early decline signal
-  if (score >= 40) return "Drifting";
+  if (score >= 40) return "Drifting";   // v1.6: 40–69 (absorbed former 60–69 Yellowline slot)
   return "Redline";
+}
+
+// ── Decline signal (v1.6) — "Yellowline" momentum signal ─────────────────────
+// Pure: no DB access. The score/index.ts wrapper reads history and supplies the
+// pre-computed reference/window/prior-state inputs (mirrors how zones are wired).
+// Fires when a user in the upper range (≥70) has declined ≥5pts vs a reference
+// score from 5–7 days ago, with a hysteresis band (3 ≤ delta < 5) that inherits
+// yesterday's value to avoid day-to-day flicker.
+export interface DeclineSignalInput {
+  currentScore: number | null;
+  referenceScore: number | null;       // score from 5–7 days ago (first non-null hit)
+  scoredDaysInWindow: number;          // count of scored days in prior 7d window
+  prevDeclineSignal: DeclineSignal;    // yesterday's value, for hysteresis
+}
+
+export function computeDeclineSignal(input: DeclineSignalInput): DeclineSignal {
+  const { currentScore, referenceScore, scoredDaysInWindow, prevDeclineSignal } = input;
+  // Not computable without both endpoints
+  if (currentScore === null || referenceScore === null) return null;
+  // Gate: need ≥5 scored days in the prior 7-day window
+  if (scoredDaysInWindow < 5) return null;
+  // Floor: below 70 the user is already in Drifting — the band handles it
+  if (currentScore < 70) return null;
+  const delta = referenceScore - currentScore;
+  if (delta >= 5) return "yellowline";   // fire
+  if (delta < 3) return null;            // clear
+  // Hysteresis band (3 ≤ delta < 5): inherit prior state
+  return prevDeclineSignal === "yellowline" ? "yellowline" : null;
 }
 
 function computeHealthAndRisk(deviations: MetricDeviation[]): { health: number; risk: number } {
@@ -115,11 +145,16 @@ export function scoreDay(params: {
   zone_1?: ZoneState;
   zone_2?: ZoneState;
   range_trust_state?: RangeTrustState;
+  // Decline signal v1.6 — pre-computed history inputs from score/index.ts
+  referenceScore?: number | null;
+  scoredDaysInWindow?: number;
+  prevDeclineSignal?: DeclineSignal;
 }): ScoringResult {
   const {
     input, baseline, historyDays, recentScores,
     stepGoal = 8000, engagementDays = 0, deviationContext = {},
     zone_1 = null, zone_2 = null, range_trust_state = "establishing",
+    referenceScore = null, scoredDaysInWindow = 0, prevDeclineSignal = null,
   } = params;
 
   const confidence_tier = computeConfidenceTier(historyDays);
@@ -128,7 +163,8 @@ export function scoreDay(params: {
   // D12: No synthetic score. 0-2 day users see baseline-building UI state.
   if (confidence_tier === "none" || !baseline) {
     return {
-      chronos_score: null, score_band: null, health_score: null, risk_score: null, alpha: null,
+      chronos_score: null, score_band: null, decline_signal: null,
+      health_score: null, risk_score: null, alpha: null,
       domain_scores: EMPTY_DOMAINS, driver_1: "hrv", driver_2: "resting_hr",
       delta_override_triggered: false, fail_state: null, is_provisional: true,
       confidence_tier, pre_drift_signal: false, domain_version: DOMAIN_VERSION,
@@ -142,6 +178,9 @@ export function scoreDay(params: {
   const rawScore      = health - risk * alpha;
   const chronos_score = Math.max(0, Math.min(100, Math.round(rawScore)));
   const score_band    = getScoreBand(chronos_score);
+  const decline_signal = computeDeclineSignal({
+    currentScore: chronos_score, referenceScore, scoredDaysInWindow, prevDeclineSignal,
+  });
   const domain_scores = computeDomainScores(deviations, historyDays);
   const { driver_1, driver_2 } = selectTopDrivers(deviations);
   const delta_override_triggered = checkDeltaOverride(chronos_score, recentScores);
@@ -152,7 +191,8 @@ export function scoreDay(params: {
   const fail_state = computeFailState({ deviations, chronos_score, engagementDays, recentScores, input, confidence_tier });
 
   return {
-    chronos_score, score_band, health_score: Math.round(health), risk_score: Math.round(risk),
+    chronos_score, score_band, decline_signal,
+    health_score: Math.round(health), risk_score: Math.round(risk),
     alpha, domain_scores, driver_1, driver_2, delta_override_triggered,
     fail_state, is_provisional, confidence_tier, pre_drift_signal,
     domain_version: DOMAIN_VERSION, deviations, reserve_flags,

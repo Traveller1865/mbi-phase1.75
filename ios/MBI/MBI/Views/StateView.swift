@@ -26,8 +26,23 @@ import SwiftUI
 
 struct GhostAtRiskView: View {
     let score: DailyScore
+    let recentScores: [Double]
     let onSeeWhatHappened: () -> Void
     @State private var pulsing = false
+
+    // Truthful decline length — the trailing run of consecutive daily drops.
+    // recentScores is ascending (oldest → newest); the last element is today.
+    // Returns nil when the latest move is not a decline (so the line is hidden).
+    private var declineDescriptor: String? {
+        guard recentScores.count >= 2 else { return nil }
+        var days = 0
+        var i = recentScores.count - 1
+        while i > 0 && recentScores[i] < recentScores[i - 1] {
+            days += 1
+            i -= 1
+        }
+        return days >= 1 ? "\(days)-day decline" : nil
+    }
 
     var body: some View {
         ZStack {
@@ -91,9 +106,11 @@ struct GhostAtRiskView: View {
                         .foregroundColor(Color(red: 1.0, green: 0.78, blue: 0.28))
                         .tracking(3)
 
-                    Text("4-day decline")
-                        .font(.jost(size: 11, weight: .light))
-                        .foregroundColor(Color(red: 1.0, green: 0.55, blue: 0.35))
+                    if let descriptor = declineDescriptor {
+                        Text(descriptor)
+                            .font(.jost(size: 11, weight: .light))
+                            .foregroundColor(Color(red: 1.0, green: 0.55, blue: 0.35))
+                    }
                 }
                 .padding(.horizontal, 32)
                 .padding(.vertical, 24)

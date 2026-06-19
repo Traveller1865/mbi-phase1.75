@@ -151,7 +151,7 @@ struct DashboardView: View {
                         }
 
                         if failState == "Ghost-AtRisk" {
-                            GhostAtRiskView(score: data.score) { }
+                            GhostAtRiskView(score: data.score, recentScores: data.recentScores) { }
 
                         } else if data.score.scoreBand == .redline {
                             RedlineDashboardView(

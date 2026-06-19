@@ -10,7 +10,8 @@
 // they trace to a consolidated v1.5 Logic Registry that does not yet exist in the
 // repo. They are a follow-on work item gated on that Registry. See ./README.md.
 
-import { getScoreBand, scoreDay } from "../scoring.ts";
+import { computeDeclineSignal, getScoreBand, scoreDay } from "../scoring.ts";
+import { computeFailState } from "../failstates.ts";
 import { selectTopDrivers } from "../drivers.ts";
 import type { Baseline, DailyInput, MetricDeviation } from "../contracts.ts";
 import { DOMAIN_VERSION } from "../contracts.ts";
@@ -20,10 +21,11 @@ function assert(cond: boolean, msg: string) { if (!cond) throw new Error(`FAIL: 
 function eq<T>(a: T, b: T, msg: string) { if (a !== b) throw new Error(`FAIL: ${msg} (got ${JSON.stringify(a)}, expected ${JSON.stringify(b)})`); }
 
 // ════════════════════════════════════════════════════════════════════════════
-// GROUP 1 — SCORE BANDS
+// GROUP 1 — SCORE BANDS (v1.6: Yellowline removed as a band; Drifting spans 40–69)
 // SOURCE: Founder approval (2026-06) + Canonical Backend Architecture v1.2 +
-//         contracts.ts v1.5 ScoreBand. Documented ranges:
-//         Thriving 80+ · Recovering 70–79 · Yellowline 60–69 · Drifting 40–59 · Redline <40.
+//         contracts.ts v1.6 ScoreBand + Yellowline Build Handoff v1.0 §3.3.
+//         Documented ranges: Thriving 80+ · Recovering 70–79 · Drifting 40–69 · Redline <40.
+//         Yellowline is no longer a band — it is a momentum signal (see GROUP 1b).
 // Expectations are the documented range boundaries, not observed output.
 // ════════════════════════════════════════════════════════════════════════════
 Deno.test("bands: Thriving is 80 and above", () => {
@@ -32,19 +34,61 @@ Deno.test("bands: Thriving is 80 and above", () => {
 });
 Deno.test("bands: Recovering is 70–79", () => {
   eq(getScoreBand(79), "Recovering", "79 (upper bound) → Recovering");
+  eq(getScoreBand(75), "Recovering", "75 (CP-5 #3) → Recovering");
   eq(getScoreBand(70), "Recovering", "70 (lower bound) → Recovering");
 });
-Deno.test("bands: Yellowline is 60–69 (v1.5)", () => {
-  eq(getScoreBand(69), "Yellowline", "69 (upper bound) → Yellowline");
-  eq(getScoreBand(60), "Yellowline", "60 (lower bound) → Yellowline");
-});
-Deno.test("bands: Drifting is 40–59", () => {
-  eq(getScoreBand(59), "Drifting", "59 (upper bound) → Drifting");
+Deno.test("bands: Drifting is 40–69 (v1.6 — absorbs former Yellowline slot)", () => {
+  eq(getScoreBand(69), "Drifting", "69 (upper bound) → Drifting");
+  eq(getScoreBand(65), "Drifting", "65 (CP-5 #3 — formerly Yellowline) → Drifting");
+  eq(getScoreBand(60), "Drifting", "60 (formerly Yellowline lower bound) → Drifting");
+  eq(getScoreBand(45), "Drifting", "45 (CP-5 #3) → Drifting");
   eq(getScoreBand(40), "Drifting", "40 (lower bound) → Drifting");
 });
 Deno.test("bands: Redline is below 40", () => {
   eq(getScoreBand(39), "Redline", "39 (upper bound) → Redline");
+  eq(getScoreBand(35), "Redline", "35 (CP-5 #3) → Redline");
   eq(getScoreBand(0), "Redline", "0 → Redline");
+});
+
+// ════════════════════════════════════════════════════════════════════════════
+// GROUP 1b — DECLINE SIGNAL ("Yellowline" momentum signal, v1.6)
+// SOURCE: Yellowline Build Handoff v1.0 §3.1/§3.2/§4.6 + contracts.ts v1.6 DeclineSignal.
+//   Fires when: currentScore ≥ 70 AND (referenceScore − currentScore) ≥ 5,
+//   gated on ≥5 scored days in the prior 7-day window. Hysteresis: delta < 3 clears,
+//   3 ≤ delta < 5 inherits the prior day's value.
+// Expectations are the documented §4.6 acceptance table, not observed output.
+// ════════════════════════════════════════════════════════════════════════════
+Deno.test("decline: fires when ≥70 and delta ≥5 with gate satisfied", () => {
+  eq(computeDeclineSignal({ currentScore: 81, referenceScore: 88, scoredDaysInWindow: 5, prevDeclineSignal: null }),
+     "yellowline", "81 from 88 (delta 7) → yellowline");
+});
+Deno.test("decline: floor blocks below 70", () => {
+  eq(computeDeclineSignal({ currentScore: 68, referenceScore: 75, scoredDaysInWindow: 5, prevDeclineSignal: null }),
+     null, "68 < 70 floor → null (band handles it)");
+});
+Deno.test("decline: delta too small (and no prior) clears", () => {
+  eq(computeDeclineSignal({ currentScore: 78, referenceScore: 81, scoredDaysInWindow: 5, prevDeclineSignal: null }),
+     null, "delta 3 with no prior signal → null");
+});
+Deno.test("decline: gate fails with <5 scored days", () => {
+  eq(computeDeclineSignal({ currentScore: 81, referenceScore: 88, scoredDaysInWindow: 4, prevDeclineSignal: null }),
+     null, "only 4 scored days in window → null");
+});
+Deno.test("decline: hysteresis persists in 3≤delta<5 band when prior was yellowline", () => {
+  eq(computeDeclineSignal({ currentScore: 78, referenceScore: 82, scoredDaysInWindow: 5, prevDeclineSignal: "yellowline" }),
+     "yellowline", "delta 4, prior yellowline → inherits yellowline");
+});
+Deno.test("decline: hysteresis clears when delta <3 even if prior was yellowline", () => {
+  eq(computeDeclineSignal({ currentScore: 80, referenceScore: 82, scoredDaysInWindow: 5, prevDeclineSignal: "yellowline" }),
+     null, "delta 2 clears regardless of prior state → null");
+});
+Deno.test("decline: not computable without a reference score", () => {
+  eq(computeDeclineSignal({ currentScore: 81, referenceScore: null, scoredDaysInWindow: 5, prevDeclineSignal: null }),
+     null, "no reference score → null");
+});
+Deno.test("decline: recovery below floor clears a previously-firing signal", () => {
+  eq(computeDeclineSignal({ currentScore: 68, referenceScore: 72, scoredDaysInWindow: 5, prevDeclineSignal: "yellowline" }),
+     null, "dropped below 70 → null (entered Drifting; band handles it)");
 });
 
 // ════════════════════════════════════════════════════════════════════════════
@@ -107,7 +151,7 @@ Deno.test("provisional: no baseline yields no synthetic score (D12)", () => {
   eq(r.score_band, null, "no baseline → score_band is null");
   eq(r.is_provisional, true, "no baseline → is_provisional is true");
   eq(r.confidence_tier, "none", "no baseline / <3 days → confidence_tier none");
-  eq(r.domain_version, DOMAIN_VERSION, "domain_version is stamped (v1.5)");
+  eq(r.domain_version, DOMAIN_VERSION, "domain_version is stamped (v1.6)");
 });
 
 // ════════════════════════════════════════════════════════════════════════════
@@ -137,4 +181,42 @@ Deno.test("drivers: driver_2 is a distinct second metric when one exists (fix)",
   const { driver_1, driver_2 } = selectTopDrivers(devs);
   assert(driver_2 !== null, "a second weighted metric exists → driver_2 is not null");
   assert(driver_1 !== driver_2, "driver_1 and driver_2 are distinct (never duplicated)");
+});
+
+// ════════════════════════════════════════════════════════════════════════════
+// GROUP 5 — PHYSIOLOGICAL REDLINE BREADTH (failstates v1.4)
+// SOURCE: failstates.ts v1.4 — the breadth Redline trigger (≥2 metrics at -1)
+//         counts PHYSIOLOGICAL signals only. Activity/behavioral metrics
+//         (steps, active_minutes, stand_hours, distance, resting_energy) must not
+//         push a healthy-scoring day into Redline. Fixes the observed 87-composite
+//         false positive (hrv -1 + steps -1 → Redline).
+// ════════════════════════════════════════════════════════════════════════════
+const REDLINE_BASE = {
+  chronos_score: 87,
+  engagementDays: 0,                 // < 3 → no Ghost branch
+  recentScores: [85, 86, 87],        // length < 5 → no Drift branch; score 87 ∉ 40–59
+  input: { userId: "u", date: "2026-06-16" } as DailyInput,  // no respiratory/sleep triggers
+  confidence_tier: "full" as const,
+};
+
+Deno.test("failstate: hrv -1 + steps -1 does NOT trigger Redline (activity excluded, v1.4)", () => {
+  const r = computeFailState({
+    ...REDLINE_BASE,
+    deviations: [
+      { metric: "hrv",   value: 32, deviation: -1, weight: 2 },
+      { metric: "steps", value: 4467, deviation: -1, weight: 1 },
+    ],
+  });
+  eq(r, null, "one physiological + one activity mild dip → not Redline");
+});
+
+Deno.test("failstate: two physiological -1 dips still trigger Redline (breadth retained)", () => {
+  const r = computeFailState({
+    ...REDLINE_BASE,
+    deviations: [
+      { metric: "hrv",        value: 32, deviation: -1, weight: 2 },
+      { metric: "resting_hr", value: 75, deviation: -1, weight: 2 },
+    ],
+  });
+  eq(r, "Redline", "two physiological mild dips → Redline (breadth signal preserved)");
 });

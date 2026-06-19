@@ -23,6 +23,7 @@ import {
   computeValidDays, computeTrustState, computeHRV7dRollingAvg,
   computeRangePercentiles, classifyDriverZone,
 } from "../../functions/_shared/domain/index.ts";
+import type { DeclineSignal } from "../../functions/_shared/domain/index.ts";
 import { verifyCallerOwnsUser } from "../../functions/_shared/auth.ts";
 
 const SUPABASE_URL = Deno.env.get("SUPABASE_URL")!;
@@ -160,6 +161,35 @@ serve(async (req) => {
       ? daysBetween(recentScoreRows[0].date ?? date, date)
       : 0;
 
+    // ── 5b. Decline-signal window (v1.6) — prior 7 calendar days ──────
+    // Yellowline momentum signal: reference score (most recent non-null 5–7d ago),
+    // scored-day gate, and yesterday's decline_signal for hysteresis. The pure
+    // computeDeclineSignal (inside scoreDay) consumes these pre-computed inputs.
+    const declineWindowStart = new Date(date);
+    declineWindowStart.setUTCDate(declineWindowStart.getUTCDate() - 7);
+    const { data: declineWindowRows } = await supabase
+      .from("daily_scores")
+      .select("date, chronos_score, decline_signal")
+      .eq("user_id", userId)
+      .gte("date", toDateString(declineWindowStart))
+      .lt("date", date)
+      .order("date", { ascending: false })
+      .limit(7);
+
+    const declineRows = (declineWindowRows ?? []) as Array<
+      { date: string; chronos_score: number | null; decline_signal: DeclineSignal }
+    >;
+    // Reference: most recent row dated 5–7 days ago carrying a non-null score
+    const referenceScore = declineRows.find((r) => {
+      const daysAgo = daysBetween(date, r.date);
+      return daysAgo >= 5 && daysAgo <= 7 && r.chronos_score != null;
+    })?.chronos_score ?? null;
+    // Gate: count of scored days in the prior 7-day window
+    const scoredDaysInWindow = declineRows.filter((r) => r.chronos_score != null).length;
+    // Hysteresis: yesterday's decline_signal (null if no prior row exists)
+    const prevDeclineSignal: DeclineSignal =
+      declineRows.find((r) => daysBetween(date, r.date) === 1)?.decline_signal ?? null;
+
     // ── 6. Run scoring engine ─────────────────────────────────────────
     const result = scoreDay({
       input: {
@@ -182,6 +212,10 @@ serve(async (req) => {
       recentScores,
       stepGoal,
       engagementDays,
+      // Decline signal v1.6 — pre-computed history inputs (see §5b)
+      referenceScore,
+      scoredDaysInWindow,
+      prevDeclineSignal,
       // Bug #5 fix: populate prevSleepContinuityDeviation so sleep continuity corroboration works.
       // historyRows is ascending by date; the last row is yesterday's inputs.
       deviationContext: (() => {
@@ -297,6 +331,7 @@ serve(async (req) => {
       date,
       chronos_score: result.chronos_score,
       score_band: result.score_band,
+      decline_signal: result.decline_signal,
       health_score: result.health_score,
       risk_score: result.risk_score,
       alpha: result.alpha,
