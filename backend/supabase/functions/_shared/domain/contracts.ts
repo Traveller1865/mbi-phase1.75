@@ -1,6 +1,9 @@
 // backend/supabase/functions/_shared/domain/contracts.ts
 // MBI Scoring Engine — Type Contracts
-// Version: 1.6 | Pre-Beta Sprint (June 2026)
+// Version: 1.7 | Pre-Beta Sprint (June 2026)
+// Changes v1.7: driver_2_stale on ScoringResult — driver_2 may now resolve via a
+//               baseline-only fallback (a known recent pattern, no fresh reading today)
+//               so thin-data days still surface a second driver (Non-Negotiable #4).
 // Changes v1.6: Yellowline removed from ScoreBand (Drifting expands to 40–69); new
 //               DeclineSignal type + decline_signal field on ScoringResult — a
 //               momentum signal (decline from the upper range), not a band.
@@ -9,7 +12,7 @@
 //               added to ScoringResult row (written to daily_scores in addition to baselines)
 // Changes v1.4: ZoneState + RangeTrustState types; zone_1/zone_2/range_trust_state on ScoringResult
 
-export const DOMAIN_VERSION = "1.6";
+export const DOMAIN_VERSION = "1.7";
 
 export type ZoneState =
   | "elevated"
@@ -133,6 +136,9 @@ export interface ScoringResult {
   domain_scores: DomainScores;
   driver_1: MetricName;
   driver_2: MetricName | null;
+  // v1.7: true when driver_2 was resolved via the baseline-only fallback (a known
+  // recent pattern, no fresh reading today); false in the normal case or when null.
+  driver_2_stale: boolean;
   delta_override_triggered: boolean;
   fail_state: FailState;
   is_provisional: boolean;

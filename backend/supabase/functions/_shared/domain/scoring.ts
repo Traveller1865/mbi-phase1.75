@@ -165,7 +165,7 @@ export function scoreDay(params: {
     return {
       chronos_score: null, score_band: null, decline_signal: null,
       health_score: null, risk_score: null, alpha: null,
-      domain_scores: EMPTY_DOMAINS, driver_1: "hrv", driver_2: "resting_hr",
+      domain_scores: EMPTY_DOMAINS, driver_1: "hrv", driver_2: "resting_hr", driver_2_stale: false,
       delta_override_triggered: false, fail_state: null, is_provisional: true,
       confidence_tier, pre_drift_signal: false, domain_version: DOMAIN_VERSION,
       deviations: [], reserve_flags: [], zone_1, zone_2, range_trust_state,
@@ -182,7 +182,7 @@ export function scoreDay(params: {
     currentScore: chronos_score, referenceScore, scoredDaysInWindow, prevDeclineSignal,
   });
   const domain_scores = computeDomainScores(deviations, historyDays);
-  const { driver_1, driver_2 } = selectTopDrivers(deviations);
+  const { driver_1, driver_2, driver_2_stale } = selectTopDrivers(deviations, baseline);
   const delta_override_triggered = checkDeltaOverride(chronos_score, recentScores);
   const pre_drift_signal         = checkPreDrift(chronos_score, recentScores.slice(-5));
   const reserve_flags: ReserveFlag[] = deviations
@@ -193,7 +193,7 @@ export function scoreDay(params: {
   return {
     chronos_score, score_band, decline_signal,
     health_score: Math.round(health), risk_score: Math.round(risk),
-    alpha, domain_scores, driver_1, driver_2, delta_override_triggered,
+    alpha, domain_scores, driver_1, driver_2, driver_2_stale, delta_override_triggered,
     fail_state, is_provisional, confidence_tier, pre_drift_signal,
     domain_version: DOMAIN_VERSION, deviations, reserve_flags,
     zone_1, zone_2, range_trust_state,

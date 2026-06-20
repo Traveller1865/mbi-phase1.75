@@ -21,7 +21,7 @@ const ANTHROPIC_API_KEY = Deno.env.get("ANTHROPIC_API_KEY")!;
 const MODEL                = "claude-sonnet-4-6";
 const PROMPT_VERSION       = "2.0";
 const NUDGE_POLICY_VERSION = "v1.0";
-const DOMAIN_VERSION       = "1.6"; // must match contracts.ts DOMAIN_VERSION
+const DOMAIN_VERSION       = "1.7"; // must match contracts.ts DOMAIN_VERSION
 
 // ─────────────────────────────────────────
 // METRIC DISPLAY NAMES
@@ -86,11 +86,19 @@ function buildDriverContext(
   // deno-lint-ignore no-explicit-any
   inputRow: Record<string, any> | null,
   // deno-lint-ignore no-explicit-any
-  baselineRow: Record<string, any> | null
+  baselineRow: Record<string, any> | null,
+  isStale = false,
 ): string {
   const inputCol   = INPUT_COL[driver];
   const baselineCol = BASELINE_COL[driver];
   const label      = METRIC_LABELS[driver] ?? driver;
+
+  // v1.7: a stale / baseline-only driver_2 has no fresh reading today — it was drawn
+  // from the user's recent pattern. Frame as steady monitoring, never a measured
+  // change (Non-Negotiable #7: the domain decides; Claude narrates what it's given).
+  if (isStale) {
+    return `${label}: holding steady — no new reading today, recent pattern unchanged`;
+  }
 
   if (!inputCol || !baselineCol || !inputRow || !baselineRow) {
     return `${label}: baseline still building — no direction yet`;
@@ -422,6 +430,7 @@ TODAY'S DATA (deterministic — do not change these values):
 DRIVER DIRECTION DATA (deterministic — your explanation must align with these):
 - ${input.driver_1_context} [today's value: ${input.driver_1_value}]
 - ${input.driver_2_context} [today's value: ${input.driver_2_value}]
+If a driver above is described as having no fresh reading today (e.g. "holding steady — no new reading today, recent pattern unchanged"), treat it as steady monitoring based on the user's established pattern. Do NOT describe it as a change, trend, improvement, or deviation — nothing was measured for it today.
 
 ${zoneSection}
 ${calmSection}
@@ -554,7 +563,9 @@ serve(async (req) => {
     ]);
 
     const driver1Context = buildDriverContext(score.driver_1, inputRow, baselineRow);
-    const driver2Context = buildDriverContext(score.driver_2, inputRow, baselineRow);
+    // v1.7: driver_2 may be a baseline-only fallback (no fresh reading today) — pass the
+    // stale flag so its context is framed as a steady pattern, not a measured change.
+    const driver2Context = buildDriverContext(score.driver_2, inputRow, baselineRow, score.driver_2_stale === true);
 
     // ── Range Architecture v1.0 — zone context and trust state ───────
     // zone_1/zone_2 are written to daily_scores by the scoring pipeline.

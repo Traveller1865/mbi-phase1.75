@@ -151,36 +151,55 @@ Deno.test("provisional: no baseline yields no synthetic score (D12)", () => {
   eq(r.score_band, null, "no baseline → score_band is null");
   eq(r.is_provisional, true, "no baseline → is_provisional is true");
   eq(r.confidence_tier, "none", "no baseline / <3 days → confidence_tier none");
-  eq(r.domain_version, DOMAIN_VERSION, "domain_version is stamped (v1.6)");
+  eq(r.domain_version, DOMAIN_VERSION, "domain_version is stamped (v1.7)");
 });
 
 // ════════════════════════════════════════════════════════════════════════════
-// GROUP 4 — NULL driver_2 PATH
-// SOURCE: contracts.ts ScoringResult.driver_2 : MetricName | null (driver_2 is
-//         explicitly nullable) + the driver-selection fix rationale (when a second
-//         distinct weighted metric exists, driver_2 must be that metric, not null).
+// GROUP 4 — driver_2 SELECTION + BASELINE-ONLY FALLBACK (v1.7)
+// SOURCE: contracts.ts ScoringResult.driver_2 : MetricName | null + driver_2_stale;
+//         Non-Negotiable #4 (two drivers, never fewer). When today's data supplies no
+//         second metric, driver_2 draws from a metric the user has a BASELINE pattern
+//         for (no fresh reading today), flagged driver_2_stale. selectTopDrivers now
+//         takes (deviations, baseline). Cases mirror Acceptance Criteria §5 #1–#3.
 // ════════════════════════════════════════════════════════════════════════════
-Deno.test("drivers: driver_2 is null when only one metric carries weight", () => {
-  // Only one weighted metric exists → there is no possible second driver → null.
-  const devs: MetricDeviation[] = [
-    { metric: "steps",    value: 1000, deviation: -1, weight: 1 },
-    { metric: "distance", value: 0,    deviation: 0,  weight: 0 },
-  ];
-  const { driver_1, driver_2 } = selectTopDrivers(devs);
-  eq(driver_1, "steps", "the single weighted metric is driver_1");
-  eq(driver_2, null, "no second weighted metric → driver_2 is null (contract permits null)");
-});
-
-Deno.test("drivers: driver_2 is a distinct second metric when one exists (fix)", () => {
-  // Two weighted metrics present (steps flagged, hrv weighted-but-unflagged).
-  // The fix guarantees driver_2 falls back to the next weighted metric rather than null.
+Deno.test("drivers: distinct second metric from today's data — not stale (AC#3, regression)", () => {
+  // Two weighted metrics present today (steps flagged, hrv weighted-but-unflagged).
+  // driver_2 resolves from today's data, never duplicating driver_1, and is not stale.
   const devs: MetricDeviation[] = [
     { metric: "steps", value: 1000, deviation: -1, weight: 1 },
     { metric: "hrv",   value: 50,   deviation: 0,  weight: 2 },
   ];
-  const { driver_1, driver_2 } = selectTopDrivers(devs);
-  assert(driver_2 !== null, "a second weighted metric exists → driver_2 is not null");
+  const baseline: Baseline = { hrv_avg: 55, steps_avg: 8000, window_days: 7 };
+  const { driver_1, driver_2, driver_2_stale } = selectTopDrivers(devs, baseline);
+  assert(driver_2 !== null, "a second weighted metric exists today → driver_2 is not null");
   assert(driver_1 !== driver_2, "driver_1 and driver_2 are distinct (never duplicated)");
+  eq(driver_2_stale, false, "a driver_2 from today's data is not stale");
+});
+
+Deno.test("drivers: baseline-only fallback supplies driver_2, flagged stale (AC#1)", () => {
+  // Only steps has today's data (no second metric from today), but the user has a
+  // resting_hr baseline pattern from prior days → fallback resolves driver_2 = resting_hr.
+  const devs: MetricDeviation[] = [
+    { metric: "steps", value: 1000, deviation: -1, weight: 1 },
+  ];
+  const baseline: Baseline = { steps_avg: 8000, resting_hr_avg: 60, window_days: 7 };
+  const { driver_1, driver_2, driver_2_stale } = selectTopDrivers(devs, baseline);
+  eq(driver_1, "steps", "today's single weighted metric is driver_1");
+  eq(driver_2, "resting_hr", "fallback picks the highest-weight baseline metric ≠ driver_1");
+  eq(driver_2_stale, true, "a baseline-only fallback driver_2 is flagged stale");
+});
+
+Deno.test("drivers: driver_2 stays null when no other metric has a baseline (AC#2)", () => {
+  // Single weighted metric today AND the baseline covers only that metric → genuine
+  // zero-second-baseline edge → driver_2 stays null (accepted limit), not stale.
+  const devs: MetricDeviation[] = [
+    { metric: "steps", value: 1000, deviation: -1, weight: 1 },
+  ];
+  const baseline: Baseline = { steps_avg: 8000, window_days: 5 };  // no other metric averages
+  const { driver_1, driver_2, driver_2_stale } = selectTopDrivers(devs, baseline);
+  eq(driver_1, "steps", "the single weighted metric is driver_1");
+  eq(driver_2, null, "no other baseline metric → driver_2 is null (contract permits null)");
+  eq(driver_2_stale, false, "the true-null case is not stale");
 });
 
 // ════════════════════════════════════════════════════════════════════════════

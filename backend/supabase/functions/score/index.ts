@@ -272,11 +272,12 @@ serve(async (req) => {
         })
       : null;
 
-    // zone_2 is only meaningful when a second distinct driver exists; when driver_2
-    // is null (a single weighted metric — see selectTopDrivers) there is no second
-    // zone to classify, so leave it null rather than classifying a null metric.
+    // zone_2 is only meaningful when a second driver exists AND has a fresh reading
+    // today. A null driver_2 (single weighted metric) or a stale/baseline-only driver_2
+    // (v1.7 fallback — no today's value) both leave zone_2 null; classifyDriverZone
+    // requires a real todayValue and must not receive a stale or null metric.
     const driver2 = result.driver_2;
-    const zone_2 = (percentiles && driver2)
+    const zone_2 = (percentiles && driver2 && !result.driver_2_stale)
       ? classifyDriverZone({
           metric:       driver2,
           todayValue:   getMetricValue(input, driver2),
@@ -346,6 +347,7 @@ serve(async (req) => {
       d5_allostatic: result.domain_scores.d5_allostatic,
       driver_1: result.driver_1,
       driver_2: result.driver_2,
+      driver_2_stale: result.driver_2_stale,
       delta_override_triggered: result.delta_override_triggered,
       fail_state: result.fail_state,
       is_provisional: result.is_provisional,
