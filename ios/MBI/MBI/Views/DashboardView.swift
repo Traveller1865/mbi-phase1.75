@@ -191,7 +191,7 @@ struct DashboardView: View {
                                 LetterCard(score: data.score, explanation: explanation)
                                     .padding(.horizontal, 20).padding(.bottom, 16)
 
-                                YellowlineNudgeCard(nudge: explanation.displayNudgeText)
+                                YellowlineNudgeCard(nudge: explanation.displayNudgeText, nudgeEventId: supabase.latestNudgeEventId)
                                     .padding(.horizontal, 20).padding(.bottom, 16)
                             }
 
@@ -227,10 +227,10 @@ struct DashboardView: View {
                                     .padding(.horizontal, 20).padding(.bottom, 16)
 
                                 if failState == "Drift" {
-                                    DriftNudgeCard(nudge: explanation.displayNudgeText)
+                                    DriftNudgeCard(nudge: explanation.displayNudgeText, nudgeEventId: supabase.latestNudgeEventId)
                                         .padding(.horizontal, 20).padding(.bottom, 16)
                                 } else {
-                                    ChronosNudgeCard(nudge: explanation.displayNudgeText)
+                                    ChronosNudgeCard(nudge: explanation.displayNudgeText, nudgeEventId: supabase.latestNudgeEventId)
                                         .padding(.horizontal, 20).padding(.bottom, 16)
                                 }
                             }
@@ -265,7 +265,7 @@ struct DashboardView: View {
             }
         }
         .sheet(isPresented: $showFeedback) {
-            if let data = sync.dashboard { FeedbackView(score: data.score, nudgeEventId: nil) }
+            if let data = sync.dashboard { FeedbackView(score: data.score, nudgeEventId: supabase.latestNudgeEventId) }
         }
         .sheet(isPresented: $showAccount) {
             AccountView()
@@ -499,6 +499,27 @@ struct MorningScoreCard: View {
     @State private var showSparkline = false
     @State private var showExplanation = false
 
+    // E-17 Feature 2: data-sufficiency tier, read from onboarding-persisted AppStorage.
+    @AppStorage("wearableDataTier") private var wearableDataTierRaw: String = WearableDataTier.full.rawValue
+
+    private var wearableDataTier: WearableDataTier {
+        WearableDataTier(rawValue: wearableDataTierRaw) ?? .full
+    }
+
+    // E-17 Feature 2: approved beta copy — shown only below full confidence. Verbatim, do not rewrite.
+    private var dataSufficiencyDisclaimer: String? {
+        switch wearableDataTier {
+        case .noWearable, .sevenDay:
+            return "Still building your baseline — early scores will stabilize as more data comes in."
+        case .building:
+            return "Baseline forming — your scores are becoming more accurate each day."
+        case .confidenceBuilding:
+            return "Baseline maturing — scores are reliable and improving."
+        case .full:
+            return nil
+        }
+    }
+
     private var displayBand: ScoreDisplayBand {
         if let override = bandOverride {
             return ScoreDisplayBand.from(scoreBand: override)
@@ -599,6 +620,16 @@ struct MorningScoreCard: View {
                         .foregroundColor(.white)
                         .lineSpacing(3)
                         .fixedSize(horizontal: false, vertical: true)
+
+                    // E-17 Feature 2: data-sufficiency disclaimer — muted, only below full tier.
+                    if let disclaimer = dataSufficiencyDisclaimer {
+                        Text(disclaimer)
+                            .font(.jost(size: 11, weight: .regular))
+                            .foregroundColor(.white.opacity(0.55))
+                            .lineSpacing(2)
+                            .fixedSize(horizontal: false, vertical: true)
+                            .padding(.top, 6)
+                    }
 
                     Spacer(minLength: 0)
                 }
@@ -1215,6 +1246,7 @@ struct LetterCard: View {
 
 struct ChronosNudgeCard: View {
     let nudge: String
+    let nudgeEventId: String?
 
     private var timeContextLabel: String {
         let hour = Calendar.current.component(.hour, from: Date())
@@ -1253,6 +1285,8 @@ struct ChronosNudgeCard: View {
                     Text(timeContextLabel)
                         .font(.jost(size: 13, weight: .light))
                         .foregroundColor(ChronosTheme.gold)
+
+                    NudgeResponseRow(nudgeEventId: nudgeEventId, accent: ChronosTheme.gold)
                 }
             }
             .padding(20)
@@ -1268,6 +1302,7 @@ struct ChronosNudgeCard: View {
 
 struct YellowlineNudgeCard: View {
     let nudge: String
+    let nudgeEventId: String?
 
     private var timeContextLabel: String {
         let hour = Calendar.current.component(.hour, from: Date())
@@ -1312,10 +1347,99 @@ struct YellowlineNudgeCard: View {
                     Text(timeContextLabel)
                         .font(.jost(size: 13, weight: .light))
                         .foregroundColor(Color(red: 1.0, green: 0.72, blue: 0.20))
+
+                    NudgeResponseRow(nudgeEventId: nudgeEventId, accent: Color(red: 1.0, green: 0.72, blue: 0.20))
                 }
             }
             .padding(20)
         }
+    }
+}
+
+// ─────────────────────────────────────────
+// NUDGE RESPONSE ROW  (OI-001 / OI-009)
+// Four response buttons that animate into a single recognition line on first tap —
+// confirms the response landed and structurally prevents a second/different response
+// (the row owns the one-response guard, so no double-logging is possible).
+// No-op when nudgeEventId is nil (narrate hasn't produced an event yet today).
+// responseType values are fixed: completed | accepted | dismissed | ignored.
+// ─────────────────────────────────────────
+
+struct NudgeResponseRow: View {
+    let nudgeEventId: String?
+    var accent: Color = ChronosTheme.gold
+    @EnvironmentObject var supabase: SupabaseService
+    @State private var acknowledgement: String? = nil
+
+    var body: some View {
+        if let ack = acknowledgement {
+            HStack(spacing: 6) {
+                Image(systemName: "checkmark.circle.fill")
+                    .font(.system(size: 12))
+                    .foregroundColor(accent)
+                Text(ack)
+                    .font(.jost(size: 13, weight: .light))
+                    .foregroundColor(accent.opacity(0.9))
+            }
+            .padding(.top, 8)
+            .transition(.opacity.combined(with: .scale(scale: 0.96, anchor: .leading)))
+        } else {
+            HStack(spacing: 12) {
+                NudgeResponseButton(label: "Done")    { respond("completed", "Logged — nice work") }
+                NudgeResponseButton(label: "On it")   { respond("accepted",  "Got it") }
+                NudgeResponseButton(label: "Not now") { respond("dismissed", "Noted") }
+                NudgeResponseButton(label: "Got it")  { respond("ignored",   "Thanks") }
+            }
+            .padding(.top, 8)
+            .transition(.opacity)
+        }
+    }
+
+    /// One response per card. Optimistic: swaps to the recognition line immediately,
+    /// then logs in the background. No-op if already responded or the id is nil.
+    private func respond(_ responseType: String, _ recognition: String) {
+        guard acknowledgement == nil, let id = nudgeEventId else { return }
+        withAnimation(.easeInOut(duration: 0.3)) {
+            acknowledgement = recognition
+        }
+        Task {
+            await supabase.logNudgeResponse(
+                nudgeEventId: id,
+                responseType: responseType,
+                latencySeconds: nil  // latency tracking is Phase 2
+            )
+        }
+    }
+}
+
+struct NudgeResponseButton: View {
+    let label: String
+    let action: () -> Void
+
+    var body: some View {
+        Button(action: action) {
+            Text(label)
+                .font(.jost(size: 12, weight: .light))
+                .foregroundColor(.white)
+                .padding(.horizontal, 10)
+                .padding(.vertical, 5)
+                .background(
+                    RoundedRectangle(cornerRadius: 6)
+                        .stroke(Color.white.opacity(0.3), lineWidth: 1)
+                )
+        }
+        .buttonStyle(NudgePressStyle())
+    }
+}
+
+/// Subtle press feedback — scales/dims on touch-down so a tap registers tactilely,
+/// then the row swaps to the recognition line.
+struct NudgePressStyle: ButtonStyle {
+    func makeBody(configuration: Configuration) -> some View {
+        configuration.label
+            .scaleEffect(configuration.isPressed ? 0.94 : 1.0)
+            .opacity(configuration.isPressed ? 0.65 : 1.0)
+            .animation(.easeInOut(duration: 0.12), value: configuration.isPressed)
     }
 }
 
@@ -1478,20 +1602,35 @@ struct DriverChipRow: View {
         let signalWord: String?           // e.g. "below baseline"
         let signalIsPositive: Bool        // drives color
         let isBuilding: Bool             // true = baseline not yet established
+        let zoneLabel: String?            // E-03: plain-English zone label, nil = no label shown
     }
 
     private func chipData(for metricRaw: String, isDriver1: Bool) -> ChipData {
+        // E-03: resolve zone once — score.zone1/zone2 are already decoded on the model.
+        let rawZone = isDriver1 ? score.zone1 : score.zone2
+        let zone = zoneLabel(for: rawZone)
         let key = ChronosMetricHelpers.inputKey(for: metricRaw)
         guard let valueOpt = inputs[key], let value = valueOpt else {
-            return ChipData(formattedValue: nil, signalWord: nil, signalIsPositive: true, isBuilding: false)
+            return ChipData(formattedValue: nil, signalWord: nil, signalIsPositive: true, isBuilding: false, zoneLabel: zone)
         }
         let formatted = ChronosMetricHelpers.formatValue(metricRaw: metricRaw, value: value)
         let baseline = baselines[ChronosMetricHelpers.baselineColumnKey(for: metricRaw)]
         if let baseline, baseline > 0 {
             let (signal, isPositive) = ChronosMetricHelpers.signalWord(metricRaw: metricRaw, value: value, baseline: baseline)
-            return ChipData(formattedValue: formatted, signalWord: signal, signalIsPositive: isPositive, isBuilding: false)
+            return ChipData(formattedValue: formatted, signalWord: signal, signalIsPositive: isPositive, isBuilding: false, zoneLabel: zone)
         } else {
-            return ChipData(formattedValue: formatted, signalWord: "building", signalIsPositive: true, isBuilding: true)
+            return ChipData(formattedValue: formatted, signalWord: "building", signalIsPositive: true, isBuilding: true, zoneLabel: nil)
+        }
+    }
+
+    // E-03: maps backend zone_1/zone_2 values to display labels. Unknown/nil → nil (no label).
+    private func zoneLabel(for rawZone: String?) -> String? {
+        switch rawZone {
+        case "within_range_low", "within_range_high": return "Within range"
+        case "below_range":                            return "Below range"
+        case "elevated":                               return "Elevated"
+        case "flagged":                                return "Flagged"
+        default:                                       return nil
         }
     }
 
@@ -1579,6 +1718,19 @@ struct DriverChip: View {
                     Capsule()
                         .fill(ChronosTheme.faint.opacity(0.15))
                         .frame(width: 80, height: 20)
+                }
+
+                // E-03: Zone label — display-only, independent of the signal pill,
+                // rendered only when non-nil (no empty placeholder).
+                if let zone = chipData.zoneLabel {
+                    Text(zone)
+                        .font(.jost(size: 9, weight: .regular))
+                        .foregroundColor(ChronosTheme.muted)
+                        .tracking(0.3)
+                        .padding(.horizontal, 6)
+                        .padding(.vertical, 2)
+                        .background(Capsule().fill(ChronosTheme.faint.opacity(0.12)))
+                        .padding(.top, 3)
                 }
 
                 // 3. Metric name + value on the same line

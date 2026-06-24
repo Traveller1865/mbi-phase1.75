@@ -294,12 +294,14 @@ class SyncCoordinator: ObservableObject {
                 dashboard = data
                 persistDashboard(data)
                 await checkCorrectionFlags(userId: userId)
+                await supabase.refreshLatestNudgeEventId(userId: userId, date: data.score.date)
                 return
             }
             if let data = try await supabase.fetchMostRecentDashboard(userId: userId) {
                 dashboard = data
                 persistDashboard(data)
                 await checkCorrectionFlags(userId: userId)
+                await supabase.refreshLatestNudgeEventId(userId: userId, date: data.score.date)
             } else {
                 print("[loadDashboard] fetchMostRecentDashboard returned nil — checking cache")
                 if let cached = loadCachedDashboard() {

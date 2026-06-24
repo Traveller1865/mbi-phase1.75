@@ -761,15 +761,35 @@ async function checkHorizonEscalation(
     return;
   }
 
-  // P4.3 placeholder: silent founder push
-  // Once APNS_KEY_ID, APNS_TEAM_ID, APNS_KEY_P8, and APNS_FOUNDER_TOKEN
-  // are stored in Supabase secrets, replace this log with sendFounderPush().
-  const shortId = userId.slice(-6);
-  console.log(
-    `[horizon-escalation] ⚡ User ...${shortId} — ` +
-    `scores: ${day1Row.chronos_score} → ${day2Row.chronos_score} → ${todayScore} ` +
-    `(all < ${ESCALATION_THRESHOLD} for ${ESCALATION_STREAK} consecutive days)`
-  );
+  // OI-018: Horizon escalation email alert (beta implementation).
+  // Routes to founder monitoring address only. APNs deferred post-beta.
+  try {
+    const horizonAlertURL = `${SUPABASE_URL}/functions/v1/horizon-alert`;
+    const alertPayload = {
+      userId,
+      triggeredDate: date,
+      scoreDay1: day1Row.chronos_score,
+      scoreDay2: day2Row.chronos_score,
+      scoreDay3: todayScore,
+      streakLength: ESCALATION_STREAK,
+    };
+    const alertResp = await fetch(horizonAlertURL, {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+        "Authorization": `Bearer ${SUPABASE_SERVICE_KEY}`,
+      },
+      body: JSON.stringify(alertPayload),
+    });
+    if (!alertResp.ok) {
+      console.error(`[horizon-escalation] alert email failed: ${alertResp.status}`);
+    } else {
+      console.log(`[horizon-escalation] alert email sent for userId ...${userId.slice(-6)}`);
+    }
+  } catch (alertErr) {
+    // Best-effort — do not let alert failure block the score response
+    console.error("[horizon-escalation] alert call threw:", alertErr);
+  }
 }
 
 function daysBetween(dateA: string, dateB: string): number {

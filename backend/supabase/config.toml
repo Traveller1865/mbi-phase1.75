@@ -103,5 +103,9 @@ verify_jwt = false
 [functions.fallback-orchestrator]
 verify_jwt = false
 
+# horizon-alert: OI-018 founder email alert — called server-to-server from score (service-role only)
+[functions.horizon-alert]
+verify_jwt = false
+
 [analytics]
 enabled = false

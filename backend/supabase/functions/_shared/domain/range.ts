@@ -1,7 +1,7 @@
 // backend/supabase/functions/_shared/domain/range.ts
 // MBI Baseline Range Architecture v1.0 — Phase 2 Sprint 1
 // Implements: five-state trust model, p20/p80 percentile boundaries,
-//             HRV 7-day smoothing, zone classification (Layer 1).
+//             HRV 7-day smoothing, zone classification (Shadow Zone Classifier).
 // Architectural constraint: all boundary values derive exclusively from
 // the individual user's own history. No population norms or clinical
 // thresholds are used in range or zone computation.
@@ -267,7 +267,7 @@ function computeSmoothedHRVSeries(rows: DailyInput[]): number[] {
 }
 
 // ─────────────────────────────────────────
-// ZONE CLASSIFICATION (Layer 1)
+// ZONE CLASSIFICATION (Shadow Zone Classifier)
 // Classifies a single metric reading against its p20/p80 boundaries.
 // Returns null when:
 //   - trust state is below provisional

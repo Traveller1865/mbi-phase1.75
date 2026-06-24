@@ -24,9 +24,59 @@ class SupabaseService: ObservableObject {
     @Published var session: AuthSession?
     @Published var currentUser: MBIUser?
     /// Stores the nudge_event_id returned by the most recent narrate call.
-    /// Cleared at the start of each daily sync; written once narrate responds.
-    /// Used by FeedbackView to link feedback to the nudge event (learning foundation).
-    @Published var latestNudgeEventId: String? = nil
+    /// Reset (in-memory) at the start of each daily sync; written once narrate responds.
+    /// Persisted scoped to today's local date so it survives app relaunch and cache-only
+    /// dashboard loads — without this, the nudge response buttons are dead in any session
+    /// that didn't run the once-daily full sync. See restoreLatestNudgeEventId().
+    /// Used by FeedbackView + nudge response buttons to link to the nudge event.
+    @Published var latestNudgeEventId: String? = nil {
+        didSet {
+            // Persist only real ids — the transient nil at sync-start must not wipe an
+            // id that is still valid for today.
+            guard let id = latestNudgeEventId else { return }
+            UserDefaults.standard.set(id, forKey: Self.nudgeEventIdKey)
+            UserDefaults.standard.set(Self.todayStamp(), forKey: Self.nudgeEventIdDateKey)
+        }
+    }
+
+    private static let nudgeEventIdKey     = "latestNudgeEventId"
+    private static let nudgeEventIdDateKey = "latestNudgeEventIdDate"
+
+    init() {
+        restoreLatestNudgeEventId()
+    }
+
+    /// Local-day stamp ("yyyy-MM-dd") used to scope the persisted nudge_event_id to today.
+    private static func todayStamp() -> String {
+        let f = DateFormatter()
+        f.dateFormat = "yyyy-MM-dd"
+        f.calendar = Calendar.current
+        return f.string(from: Date())
+    }
+
+    /// Restores today's persisted nudge_event_id into the in-memory value on launch.
+    /// Ignores a stale cross-day stamp so a response is never linked to the wrong event.
+    private func restoreLatestNudgeEventId() {
+        let d = UserDefaults.standard
+        guard d.string(forKey: Self.nudgeEventIdDateKey) == Self.todayStamp(),
+              let id = d.string(forKey: Self.nudgeEventIdKey) else { return }
+        latestNudgeEventId = id
+    }
+
+    /// Reads the most recent nudge_event_id for `date` straight from nudge_events and
+    /// publishes it to latestNudgeEventId. This is the authoritative source for the nudge
+    /// response buttons: the id is fetched whenever the dashboard loads, so it is present on
+    /// cache/Keychain launches where no narrate ran this session (the row already exists in
+    /// the DB). Best-effort — leaves the current value untouched on any failure.
+    func refreshLatestNudgeEventId(userId: String, date: String) async {
+        guard let url = URL(string:
+            "\(Config.supabaseURL)/rest/v1/nudge_events?user_id=eq.\(userId)&date=eq.\(date)&select=id&order=shown_at.desc&limit=1"
+        ) else { return }
+        guard let raw = try? await getRequest(url: url),
+              let rows = raw as? [[String: Any]],
+              let id = rows.first?["id"] as? String else { return }
+        latestNudgeEventId = id
+    }
 
     private var accessToken: String? { session?.accessToken }
 
@@ -301,12 +351,17 @@ class SupabaseService: ObservableObject {
 
     /// Calls narrate only — no ingest or score. Used for pull-to-refresh recovery and evening brief.
     func triggerNarrateOnly(userId: String, date: String, briefSession: String, timeOfDay: String) async throws {
-        _ = try await callEdgeFunction(url: Config.narrateURL, body: [
+        let result = try await callEdgeFunction(url: Config.narrateURL, body: [
             "userId":       userId,
             "date":         date,
             "timeOfDay":    timeOfDay,
             "briefSession": briefSession
         ])
+        // Keep the nudge response-button linkage live on the refresh / recovery path too
+        // (mirrors triggerDailySync). Persisted via the latestNudgeEventId didSet.
+        if let nudgeId = result["nudge_event_id"] as? String {
+            latestNudgeEventId = nudgeId
+        }
     }
 
     /// Calls narrate with briefSession "evening" only — no ingest or score.
@@ -1502,13 +1557,17 @@ extension SupabaseService {
     func logNudgeResponse(
         nudgeEventId: String,
         responseType: String,
-        latencySeconds: Int?
+        latencySeconds: Int?,
+        respondedAt: Date = Date()
     ) async {
+        // NOTE: nudge_responses has NO scoring_version column — that lives on nudge_events.
+        // Traceability to DOMAIN_VERSION is via the nudge_event_id FK, not a column here.
         guard let url = URL(string: "\(Config.supabaseURL)/rest/v1/nudge_responses") else { return }
         var body: [String: Any] = [
             "nudge_event_id": nudgeEventId,
             "user_id":        session?.userId ?? "",
             "response_type":  responseType,
+            "responded_at":   ISO8601DateFormatter().string(from: respondedAt),
         ]
         if let latency = latencySeconds {
             body["latency_seconds"] = latency

@@ -201,7 +201,7 @@ struct RedlineDashboardView: View {
                     .padding(.horizontal, 20)
                     .padding(.bottom, 16)
 
-                ChronosNudgeCard(nudge: explanation.displayNudgeText)
+                ChronosNudgeCard(nudge: explanation.displayNudgeText, nudgeEventId: supabase.latestNudgeEventId)
                     .padding(.horizontal, 20)
                     .padding(.bottom, 16)
             }
@@ -446,6 +446,7 @@ struct RedlineDriverChip: View {
 
 struct DriftNudgeCard: View {
     let nudge: String
+    let nudgeEventId: String?
 
     private var timeContextLabel: String {
         let hour = Calendar.current.component(.hour, from: Date())
@@ -491,6 +492,8 @@ struct DriftNudgeCard: View {
                     Text(timeContextLabel)
                         .font(.jost(size: 13, weight: .light))
                         .foregroundColor(Color(red: 1.0, green: 0.78, blue: 0.28))
+
+                    NudgeResponseRow(nudgeEventId: nudgeEventId, accent: Color(red: 1.0, green: 0.78, blue: 0.28))
                 }
             }
             .padding(20)
