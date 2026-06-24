@@ -44,3 +44,7 @@ backend/supabase/.branches/
 apple_health_export*/
 */apple_health_export*/
 *.xml.zip
+
+# ─── Local DB dump backups (pg_dump output — not source; root-anchored so
+#     it never matches real migrations under backend/supabase/migrations/) ───
+/backup_*.sql
