@@ -62,8 +62,8 @@ const PATHWAY_LABELS: Record<string, string> = {
 // ─────────────────────────────────────────
 
 const CALM_COPY: Record<string, string> = {
-  autonomic: "Balanced autonomic state is your foundation. Days like today are when long-term resilience compounds — the benefit accumulates even when nothing feels dramatic.",
-  sleep:     "Your repair window is completing cleanly. This is the input that makes everything else on this page possible — autonomic recovery and metabolic efficiency both depend on it.",
+  autonomic: "Your recovery system is holding steady. Days like today are when long-term resilience compounds — the benefit accumulates even when nothing feels dramatic.",
+  sleep:     "Your repair window is completing cleanly. This is the input that makes everything else on this page possible — sleep and movement patterns both contribute to it.",
   metabolic: "Consistent movement is protecting your trajectory. The multi-day pattern here matters more than any single number — continuity is the signal.",
 };
 

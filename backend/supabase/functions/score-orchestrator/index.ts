@@ -14,7 +14,7 @@
 //   4. narrate        — Today tab narrative → explanations
 //   5. narrate-trend  — Trend tab narrative → trend_narratives
 //   6. narrate-domains-pattern — Domains tab → domain_narratives
-//   STUB: ontology-classify   — Phase 1.75, not yet active
+//   ontology-classify          — Ontology Engine v1, active (Step 4b, lines 128–148)
 //   STUB: narrate-horizon     — Phase 1.75, not yet active
 //
 // Idempotency guard: if a post-5pm-local daily_scores row already exists
