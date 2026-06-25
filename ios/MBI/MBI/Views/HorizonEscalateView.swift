@@ -96,8 +96,23 @@ struct HorizonEscalateView: View {
             .safeAreaInset(edge: .bottom) { Color.clear.frame(height: 32) }
         }
         .sheet(isPresented: $showHorizonAssist) {
-            HorizonAssistView(assessment: assessment)
-                .environmentObject(supabase)
+            // Score context for the Q&A prompt. Falls back to neutral defaults if the
+            // dashboard score hasn't loaded — never blocks presentation.
+            let score = sync.dashboard?.score
+            HorizonAssistView(
+                assessment: assessment,
+                scoreContext: HorizonScoreContext(
+                    chronosScore:    score?.chronosScore ?? 0,
+                    scoreBand:       score?.scoreBand.rawValue ?? "",
+                    driver1:         score?.driver1,
+                    driver2:         score?.driver2,
+                    zone1:           score?.zone1,
+                    zone2:           score?.zone2,
+                    rangeTrustState: score?.rangeTrustState,
+                    isProvisional:   score?.isProvisional ?? false
+                )
+            )
+            .environmentObject(supabase)
         }
     }
 

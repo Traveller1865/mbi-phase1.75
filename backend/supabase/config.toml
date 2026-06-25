@@ -107,5 +107,9 @@ verify_jwt = false
 [functions.horizon-alert]
 verify_jwt = false
 
+# horizon-assist: OI-008 wellness pattern Q&A — auth via verifyCallerOwnsUser in-function
+[functions.horizon-assist]
+verify_jwt = false
+
 [analytics]
 enabled = false

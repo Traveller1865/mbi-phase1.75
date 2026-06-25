@@ -18,8 +18,7 @@ enum Config {
     static let horizonURL                = URL(string: "\(supabaseURL)/functions/v1/horizon")!
     static let narrateHorizonURL         = URL(string: "\(supabaseURL)/functions/v1/narrate-horizon")!
     static let horizonClassifyURL        = URL(string: "\(supabaseURL)/functions/v1/horizon-classify")!
-    // Sprint 9 — Phase 3: deploy `horizon-assist` Edge Function, then uncomment below.
-    // static let horizonAssistURL       = URL(string: "\(supabaseURL)/functions/v1/horizon-assist")!
+    static let horizonAssistURL          = URL(string: "\(supabaseURL)/functions/v1/horizon-assist")!
     static let escalationAlertURL     = URL(string: "\(supabaseURL)/functions/v1/escalation-alert")!
     // Pipeline Performance Architecture (June 2026)
     static let orchestratorURL        = URL(string: "\(supabaseURL)/functions/v1/score-orchestrator")!

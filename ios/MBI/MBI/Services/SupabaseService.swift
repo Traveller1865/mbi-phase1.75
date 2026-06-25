@@ -1507,45 +1507,61 @@ extension SupabaseService {
     func callHorizonAssist(
         userId: String,
         question: String,
-        assessment: HorizonAssessment
+        assessment: HorizonAssessment,
+        scoreContext: HorizonScoreContext
     ) async throws -> HorizonAssistResponse {
-        // TODO (Sprint 9 / Phase 3): Deploy `horizon-assist` Edge Function.
-        // When deployed, replace the stub below with:
-        //   let body: [String: Any] = [
-        //       "userId":   userId,
-        //       "question": question,
-        //       "signals":  signalsPayload(assessment)
-        //   ]
-        //   let result = try await callEdgeFunction(url: Config.horizonAssistURL, body: body)
-        //   guard let answer = result["answer"] as? String else {
-        //       throw MBIError.syncFailed("horizon-assist: empty response")
-        //   }
-        //   return HorizonAssistResponse(answer: answer, isStub: false)
-
-        // Phase 2 stub: synthesise a contextual response from the assessment locally.
-        let stubAnswer = buildStubAnswer(question: question, assessment: assessment)
-        return HorizonAssistResponse(answer: stubAnswer, isStub: true)
+        let body: [String: Any] = [
+            "userId":   userId,
+            "question": question,
+            "signals":  signalsPayload(assessment: assessment, scoreContext: scoreContext)
+        ]
+        let result = try await callEdgeFunction(url: Config.horizonAssistURL, body: body)
+        guard let answer = result["answer"] as? String else {
+            throw MBIError.syncFailed("horizon-assist: empty response")
+        }
+        return HorizonAssistResponse(answer: answer, isStub: false)
     }
 
-    private func buildStubAnswer(question: String, assessment: HorizonAssessment) -> String {
-        let active = [assessment.autonomic, assessment.sleep, assessment.metabolic]
-            .compactMap { $0 }
-            .filter { $0.isActive }
-
-        guard !active.isEmpty else {
-            return "Your current Horizon patterns are within baseline range — no elevated patterns are active right now. Keep tracking and Horizon will surface changes as they emerge."
+    /// Serialises HorizonAssessment + HorizonScoreContext into the request body the
+    /// horizon-assist Edge Function expects. Optional values are encoded as NSNull
+    /// (→ JSON null) so JSONSerialization never chokes on a boxed Optional, and so the
+    /// function's `string | null` fields receive a real null rather than a missing key.
+    private func signalsPayload(
+        assessment: HorizonAssessment,
+        scoreContext: HorizonScoreContext
+    ) -> [String: Any] {
+        func orNull(_ value: String?) -> Any {
+            guard let value = value else { return NSNull() }
+            return value
+        }
+        func signalDict(_ signal: HorizonSignal?) -> Any {
+            guard let s = signal else { return NSNull() }
+            return [
+                "pathway":         s.pathway,
+                "conditionClass":  orNull(s.conditionClass),
+                "trajectoryLabel": orNull(s.trajectoryLabel),
+                "escalationLevel": s.escalationLevel,
+                "confidenceGate":  s.confidenceGate,
+                "daysInPattern":   s.daysInPattern,
+                "dbState":         s.dbState,
+                "isActive":        s.isActive
+            ]
         }
 
-        let pathwayNames = active.map { signal -> String in
-            switch signal.pathway {
-            case "autonomic": return "autonomic regulation"
-            case "sleep":     return "sleep architecture"
-            default:          return "metabolic activity"
-            }
-        }.joined(separator: " and ")
-
-        let maxDays = active.map { $0.daysInPattern }.max() ?? 0
-        return "Horizon is currently tracking an elevated pattern in your \(pathwayNames) \(active.count == 1 ? "pathway" : "pathways"). This pattern has been present for \(maxDays) days. The signal reflects data collected through Apple HealthKit — not a clinical assessment. If this pattern continues, consider reviewing it with a licensed healthcare professional."
+        return [
+            "chronosScore":    scoreContext.chronosScore,
+            "scoreBand":       scoreContext.scoreBand,
+            "driver1":         orNull(scoreContext.driver1),
+            "driver2":         orNull(scoreContext.driver2),
+            "zone1":           orNull(scoreContext.zone1),
+            "zone2":           orNull(scoreContext.zone2),
+            "rangeTrustState": orNull(scoreContext.rangeTrustState),
+            "isProvisional":   scoreContext.isProvisional,
+            "momentumState":   assessment.momentumState.label,
+            "autonomic":       signalDict(assessment.autonomic),
+            "sleep":           signalDict(assessment.sleep),
+            "metabolic":       signalDict(assessment.metabolic)
+        ]
     }
 
     // MARK: - Learning Foundation: Nudge Response Logging

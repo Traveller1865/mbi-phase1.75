@@ -21,6 +21,7 @@ import SwiftUI
 
 struct HorizonAssistView: View {
     let assessment: HorizonAssessment
+    let scoreContext: HorizonScoreContext
 
     @EnvironmentObject var supabase: SupabaseService
     @Environment(\.dismiss) private var dismiss
@@ -146,7 +147,8 @@ struct HorizonAssistView: View {
             let result = try await supabase.callHorizonAssist(
                 userId: userId,
                 question: trimmed,
-                assessment: assessment
+                assessment: assessment,
+                scoreContext: scoreContext
             )
             response = result
         } catch {
@@ -329,10 +331,17 @@ private struct AssistResponseCard: View {
                 .fixedSize(horizontal: false, vertical: true)
 
             // Mandatory per-response disclaimer
-            Text("Not a medical assessment. For wellness pattern context only.")
-                .font(.jost(size: 10, weight: .light))
-                .foregroundColor(ChronosTheme.faint.opacity(0.60))
-                .padding(.top, 4)
+            VStack(alignment: .leading, spacing: 3) {
+                Text("Not a medical assessment. For wellness pattern context only.")
+                    .font(.jost(size: 10, weight: .light))
+                    .foregroundColor(ChronosTheme.faint.opacity(0.60))
+                // AI-accuracy disclaimer — visually subordinate to the line above.
+                Text("Chronos is an AI tool and responses may not always be accurate. Please verify important health information.")
+                    .font(.jost(size: 9, weight: .light))
+                    .foregroundColor(ChronosTheme.faint.opacity(0.45))
+                    .fixedSize(horizontal: false, vertical: true)
+            }
+            .padding(.top, 4)
         }
         .padding(16)
         .background(

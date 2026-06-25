@@ -727,6 +727,22 @@ struct HorizonAssessment {
 }
 
 // ─────────────────────────────────────────
+// HORIZON SCORE CONTEXT
+// OI-008: score/driver/zone context passed alongside HorizonAssessment to
+// horizon-assist, so the Q&A response can reference the user's current score state.
+// ─────────────────────────────────────────
+struct HorizonScoreContext {
+    let chronosScore: Double
+    let scoreBand: String
+    let driver1: String?
+    let driver2: String?
+    let zone1: String?
+    let zone2: String?
+    let rangeTrustState: String?
+    let isProvisional: Bool
+}
+
+// ─────────────────────────────────────────
 // HORIZON ASSIST RESPONSE
 // Sprint 9: Response from callHorizonAssist.
 // isStub = true while Edge Function is not yet deployed (Phase 2).
