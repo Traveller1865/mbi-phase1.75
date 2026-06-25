@@ -427,8 +427,8 @@ serve(async (req) => {
     // Detects 3 consecutive calendar days below chronos_score 65.
     // Threshold: 65 (not 35 / Redline floor — catches declining trends early).
     // On detection: logs to horizon_escalations table for founder review.
-    // P4.3 (silent push to founder device) fires from here once APNs
-    // credentials are configured in Supabase secrets.
+    // On detection: sends email alert to founder via horizon-alert Edge Function.
+    // APNs push deferred post-beta.
     try {
       if (result.chronos_score !== null) {
       await checkHorizonEscalation(supabase, userId, date, result.chronos_score);
@@ -680,7 +680,7 @@ function corsHeaders() {
 //
 // Fires when chronos_score < 65 for 3 consecutive calendar days.
 // Writes to horizon_escalations table. On detection, sets push_sent=false;
-// P4.3 will upgrade this to call APNs once founder provides credentials.
+// Sends email alert to founder via horizon-alert Edge Function. APNs deferred post-beta.
 //
 // Safety rules:
 //   • Days must be consecutive calendar days (gap of exactly 1 between each)
@@ -753,7 +753,7 @@ async function checkHorizonEscalation(
       score_day3:     todayScore,              // most recent (today)
       streak_length:  ESCALATION_STREAK,
       push_sent:      false,
-      // push_sent will become true once P4.3 APNs sender is wired
+      // push_sent reserved for APNs implementation post-beta
     });
 
   if (insertErr) {
