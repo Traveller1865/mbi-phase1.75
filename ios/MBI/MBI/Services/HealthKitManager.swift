@@ -6,7 +6,7 @@
 import Foundation
 import HealthKit
 
-class HealthKitManager: ObservableObject {
+class HealthKitManager: ObservableObject, @unchecked Sendable {
     static let shared = HealthKitManager()
     private let store = HKHealthStore()
     
