@@ -10,6 +10,7 @@
 		0CC679F17F2706BA4D931A3F /* Config.swift in Sources */ = {isa = PBXBuildFile; fileRef = EA1AAB802F5FCAE8EF873933 /* Config.swift */; };
 		11A7FE0FBB82BE77BFB3EED7 /* HealthKitManager.swift in Sources */ = {isa = PBXBuildFile; fileRef = E188EAB0F472BE0C94121C2F /* HealthKitManager.swift */; };
 		1E6ED0EC2FBCF3E400D4317D /* Sentry in Frameworks */ = {isa = PBXBuildFile; productRef = 1EE1A0312FB34E4D00F5AB46 /* Sentry */; };
+		1E7CF69D2FEE29720050AE10 /* PrivacyInfo.xcprivacy in Resources */ = {isa = PBXBuildFile; fileRef = 1E7CF69C2FEE29720050AE10 /* PrivacyInfo.xcprivacy */; };
 		1ED358362F96C13B00AFCF44 /* TrendView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1ED358352F96C13400AFCF44 /* TrendView.swift */; };
 		1ED358382F96CB5700AFCF44 /* AccountView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1ED358372F96CB5100AFCF44 /* AccountView.swift */; };
 		1ED3583A2F96F93A00AFCF44 /* StateView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1ED358392F96F92900AFCF44 /* StateView.swift */; };
@@ -59,6 +60,7 @@
 		032E30C829996E3B937CD459 /* SyncCoordinator.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SyncCoordinator.swift; sourceTree = "<group>"; };
 		12B35E9094BB71CE8C98E373 /* MBI.entitlements */ = {isa = PBXFileReference; lastKnownFileType = text.plist.entitlements; path = MBI.entitlements; sourceTree = "<group>"; };
 		13BA49ADAB52A97D0E4B724A /* FeedbackView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = FeedbackView.swift; sourceTree = "<group>"; };
+		1E7CF69C2FEE29720050AE10 /* PrivacyInfo.xcprivacy */ = {isa = PBXFileReference; lastKnownFileType = text.xml; path = PrivacyInfo.xcprivacy; sourceTree = "<group>"; };
 		1ED358312F9692EB00AFCF44 /* CormorantGaramond-Italic-VariableFont_wght.ttf */ = {isa = PBXFileReference; lastKnownFileType = file; path = "CormorantGaramond-Italic-VariableFont_wght.ttf"; sourceTree = "<group>"; };
 		1ED358322F9692EB00AFCF44 /* CormorantGaramond-VariableFont_wght.ttf */ = {isa = PBXFileReference; lastKnownFileType = file; path = "CormorantGaramond-VariableFont_wght.ttf"; sourceTree = "<group>"; };
 		1ED358332F9692EB00AFCF44 /* Jost-VariableFont_wght.ttf */ = {isa = PBXFileReference; lastKnownFileType = file; path = "Jost-VariableFont_wght.ttf"; sourceTree = "<group>"; };
@@ -154,6 +156,7 @@
 		390F700E8F3F889EA3900DEC /* MBI */ = {
 			isa = PBXGroup;
 			children = (
+				1E7CF69C2FEE29720050AE10 /* PrivacyInfo.xcprivacy */,
 				1ED3583F2F99914900AFCF44 /* Secrets.swift */,
 				B8D392BFD84CE67D4C3DDA0B /* Assets.xcassets */,
 				EA1AAB802F5FCAE8EF873933 /* Config.swift */,
@@ -298,6 +301,7 @@
 				9631C63B58636EAA26583C37 /* Assets.xcassets in Resources */,
 				FA001100000000000000AA01 /* CormorantGaramond-Italic-VariableFont_wght.ttf in Resources */,
 				FA001100000000000000AA02 /* CormorantGaramond-VariableFont_wght.ttf in Resources */,
+				1E7CF69D2FEE29720050AE10 /* PrivacyInfo.xcprivacy in Resources */,
 				FA001100000000000000AA03 /* Jost-VariableFont_wght.ttf in Resources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
@@ -361,12 +365,15 @@
 				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
 				CODE_SIGN_ENTITLEMENTS = MBI/MBI.entitlements;
 				CODE_SIGN_IDENTITY = "iPhone Developer";
+				CURRENT_PROJECT_VERSION = 1;
 				INFOPLIST_FILE = MBI/Info.plist;
-				INFOPLIST_KEY_LSApplicationCategoryType = "public.app-category.lifestyle";
+				INFOPLIST_KEY_CFBundleDisplayName = "Chronos by MBI";
+				INFOPLIST_KEY_LSApplicationCategoryType = "public.app-category.healthcare-fitness";
 				LD_RUNPATH_SEARCH_PATHS = (
 					"$(inherited)",
 					"@executable_path/Frameworks",
 				);
+				MARKETING_VERSION = 1.0.0;
 				PRODUCT_BUNDLE_IDENTIFIER = com.chronos.mbi.MBI;
 				SDKROOT = iphoneos;
 				TARGETED_DEVICE_FAMILY = "1,2";
@@ -438,12 +445,15 @@
 				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
 				CODE_SIGN_ENTITLEMENTS = MBI/MBI.entitlements;
 				CODE_SIGN_IDENTITY = "iPhone Developer";
+				CURRENT_PROJECT_VERSION = 1;
 				INFOPLIST_FILE = MBI/Info.plist;
-				INFOPLIST_KEY_LSApplicationCategoryType = "public.app-category.lifestyle";
+				INFOPLIST_KEY_CFBundleDisplayName = "Chronos by MBI";
+				INFOPLIST_KEY_LSApplicationCategoryType = "public.app-category.healthcare-fitness";
 				LD_RUNPATH_SEARCH_PATHS = (
 					"$(inherited)",
 					"@executable_path/Frameworks",
 				);
+				MARKETING_VERSION = 1.0.0;
 				PRODUCT_BUNDLE_IDENTIFIER = com.chronos.mbi.MBI;
 				SDKROOT = iphoneos;
 				TARGETED_DEVICE_FAMILY = "1,2";
