@@ -42,6 +42,23 @@ final class AnalyticsService {
             )
         }
     }
+
+    // ─────────────────────────────────────────
+    // CONSENT  (NA-010 / CC-024)
+    // Fires when the user affirmatively accepts the beta consent gate.
+    // `consent_version` is the single unified version string for the combined
+    // Beta Agreement + Privacy Policy + Terms copy. It is a hardcoded literal
+    // (minimum-viable per NA-010, not derived dynamically) — bump it manually
+    // whenever any of that copy changes materially.
+    // ─────────────────────────────────────────
+
+    func logConsentAccepted() {
+        track(.consentAccepted, properties: [
+            "consent_version": "1.0",
+            "accepted_at": ISO8601DateFormatter().string(from: Date()),
+            "documents": ["beta_agreement_v1.0", "privacy_policy_v1.0", "terms_of_service_v1.0"]
+        ])
+    }
 }
 
 // ─────────────────────────────────────────
@@ -65,6 +82,7 @@ enum AnalyticsEvent: String {
     case onboardingStarted      = "onboarding_started"
     case onboardingComplete     = "onboarding_complete"
     case onboardingStepViewed   = "onboarding_step_viewed"
+    case consentAccepted        = "consent_accepted"
 
     // ── HealthKit ──
     case healthKitAuthorized    = "healthkit_authorized"

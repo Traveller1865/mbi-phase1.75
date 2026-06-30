@@ -25,6 +25,7 @@
 		745CA91709CBBBEFCE9F4A9A /* MBIApp.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5354AD212BD3F6BAC86D0BA6 /* MBIApp.swift */; };
 		76BA2E8477CCA46343553678 /* DashboardView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 996E1600ADE23A09F6C2E2C4 /* DashboardView.swift */; };
 		94A2BF74AFC1E39C107C0752 /* OnboardingFlowView.swift in Sources */ = {isa = PBXBuildFile; fileRef = F327A05E118D00D59F872558 /* OnboardingFlowView.swift */; };
+		FA0011000000000000C00501 /* OnboardingConsentView.swift in Sources */ = {isa = PBXBuildFile; fileRef = FA0011000000000000C00502 /* OnboardingConsentView.swift */; };
 		9631C63B58636EAA26583C37 /* Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = B8D392BFD84CE67D4C3DDA0B /* Assets.xcassets */; };
 		A0EAFDF06ED7A988181F73D7 /* DomainBreakdownView.swift in Sources */ = {isa = PBXBuildFile; fileRef = C3951598D46763E6BD564CD6 /* DomainBreakdownView.swift */; };
 		A626C3B35A0B452E497E36C7 /* AuthView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 92BEBCDEF3B4B571E9BD46D9 /* AuthView.swift */; };
@@ -82,6 +83,7 @@
 		E188EAB0F472BE0C94121C2F /* HealthKitManager.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = HealthKitManager.swift; sourceTree = "<group>"; };
 		EA1AAB802F5FCAE8EF873933 /* Config.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Config.swift; sourceTree = "<group>"; };
 		F327A05E118D00D59F872558 /* OnboardingFlowView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = OnboardingFlowView.swift; sourceTree = "<group>"; };
+		FA0011000000000000C00502 /* OnboardingConsentView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = OnboardingConsentView.swift; sourceTree = "<group>"; };
 		FA001100000000000000A102 /* Date+Relative.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "Date+Relative.swift"; sourceTree = "<group>"; };
 		FA001100000000000000A202 /* PolicyView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PolicyView.swift; sourceTree = "<group>"; };
 		FA001100000000000000B102 /* BiometricAuthService.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = BiometricAuthService.swift; sourceTree = "<group>"; };
@@ -212,6 +214,7 @@
 				FA001100000000000000A202 /* PolicyView.swift */,
 				13BA49ADAB52A97D0E4B724A /* FeedbackView.swift */,
 				F327A05E118D00D59F872558 /* OnboardingFlowView.swift */,
+				FA0011000000000000C00502 /* OnboardingConsentView.swift */,
 			);
 			path = Views;
 			sourceTree = "<group>";
@@ -338,6 +341,7 @@
 				745CA91709CBBBEFCE9F4A9A /* MBIApp.swift in Sources */,
 				AE97A702ECB6A5FEA465E6B9 /* Models.swift in Sources */,
 				94A2BF74AFC1E39C107C0752 /* OnboardingFlowView.swift in Sources */,
+				FA0011000000000000C00501 /* OnboardingConsentView.swift in Sources */,
 				21C40F8F4D22927F58049E40 /* SupabaseService.swift in Sources */,
 				2B2E53CBCCBCC31264D74021 /* SyncCoordinator.swift in Sources */,
 				1EDA55DA2FA16CC0005601B3 /* SupabaseService+Domains.swift in Sources */,

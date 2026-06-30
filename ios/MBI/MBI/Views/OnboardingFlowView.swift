@@ -17,8 +17,11 @@ import HealthKit
 //   1  — Stage 2a: Five Signals      (skippable → 4)
 //   2  — Stage 2b: Your Baseline     (skippable → 4)
 //   3  — Stage 2c: Prediction Promise(skippable → 4)
-//   4  — Stage 3: Account Creation   (handled by AuthView in sign-up mode — routed externally)
-//        Note: Auth is handled by MBIApp root; after sign-up succeeds, onboarding resumes at step 5
+//        Note: Account creation (Stage 3) is handled by AuthView in sign-up mode,
+//        routed externally by MBIApp root *before* this flow renders — it does
+//        not consume an onboardingStep value. Onboarding begins here post-auth.
+//   4  — Beta Consent Gate (NA-010 / CC-024) — blocks all later steps until
+//        affirmative consent; every path into Stage 4 routes through here first.
 //   5  — Stage 4a: Name & Step Goal
 //   6  — Stage 4b: Health Goal
 //   7  — Stage 5a: Health Data Processing Disclosure (P5.3 — required by Apple HealthKit guidelines)
@@ -64,21 +67,27 @@ struct OnboardingFlowView: View {
                 OnboardingClaimView(onNext: { step = 1 })
 
             // Stage 2 — How It Works (all skippable)
+            // Every exit routes to the consent gate (step 4), never directly to Stage 4.
             case 1:
                 OnboardingFiveSignalsView(
                     onNext: { step = 2 },
-                    onSkip: { step = 5 }   // skip routes to Stage 4
+                    onSkip: { step = 4 }   // skip routes to consent gate
                 )
             case 2:
                 OnboardingYourBaselineView(
                     onNext: { step = 3 },
-                    onSkip: { step = 5 }
+                    onSkip: { step = 4 }
                 )
             case 3:
                 OnboardingPredictionPromiseView(
-                    onNext: { step = 5 },  // Stage 2 → Stage 4 (auth already done)
-                    onSkip: { step = 5 }
+                    onNext: { step = 4 },  // Stage 2 → consent gate (auth already done)
+                    onSkip: { step = 4 }
                 )
+
+            // Beta Consent Gate — NA-010 / CC-024
+            // The only path into Stage 4 and beyond. Blocks until affirmative consent.
+            case 4:
+                OnboardingConsentView(onConsent: { step = 5 })
 
             // Stage 4 — Personalization
             case 5:
