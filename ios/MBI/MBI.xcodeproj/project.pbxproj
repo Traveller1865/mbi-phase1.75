@@ -26,7 +26,6 @@
 		745CA91709CBBBEFCE9F4A9A /* MBIApp.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5354AD212BD3F6BAC86D0BA6 /* MBIApp.swift */; };
 		76BA2E8477CCA46343553678 /* DashboardView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 996E1600ADE23A09F6C2E2C4 /* DashboardView.swift */; };
 		94A2BF74AFC1E39C107C0752 /* OnboardingFlowView.swift in Sources */ = {isa = PBXBuildFile; fileRef = F327A05E118D00D59F872558 /* OnboardingFlowView.swift */; };
-		FA0011000000000000C00501 /* OnboardingConsentView.swift in Sources */ = {isa = PBXBuildFile; fileRef = FA0011000000000000C00502 /* OnboardingConsentView.swift */; };
 		9631C63B58636EAA26583C37 /* Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = B8D392BFD84CE67D4C3DDA0B /* Assets.xcassets */; };
 		A0EAFDF06ED7A988181F73D7 /* DomainBreakdownView.swift in Sources */ = {isa = PBXBuildFile; fileRef = C3951598D46763E6BD564CD6 /* DomainBreakdownView.swift */; };
 		A626C3B35A0B452E497E36C7 /* AuthView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 92BEBCDEF3B4B571E9BD46D9 /* AuthView.swift */; };
@@ -54,6 +53,7 @@
 		FA001100000000000000FE01 /* HorizonFoundationsView.swift in Sources */ = {isa = PBXBuildFile; fileRef = FA001100000000000000FE02 /* HorizonFoundationsView.swift */; };
 		FA001100000000000000FF01 /* HorizonMomentumView.swift in Sources */ = {isa = PBXBuildFile; fileRef = FA001100000000000000FF02 /* HorizonMomentumView.swift */; };
 		FA0011000000000000010001 /* PeakWindowCard.swift in Sources */ = {isa = PBXBuildFile; fileRef = FA0011000000000000010002 /* PeakWindowCard.swift */; };
+		FA0011000000000000C00501 /* OnboardingConsentView.swift in Sources */ = {isa = PBXBuildFile; fileRef = FA0011000000000000C00502 /* OnboardingConsentView.swift */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXFileReference section */
@@ -85,7 +85,6 @@
 		E188EAB0F472BE0C94121C2F /* HealthKitManager.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = HealthKitManager.swift; sourceTree = "<group>"; };
 		EA1AAB802F5FCAE8EF873933 /* Config.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Config.swift; sourceTree = "<group>"; };
 		F327A05E118D00D59F872558 /* OnboardingFlowView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = OnboardingFlowView.swift; sourceTree = "<group>"; };
-		FA0011000000000000C00502 /* OnboardingConsentView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = OnboardingConsentView.swift; sourceTree = "<group>"; };
 		FA001100000000000000A102 /* Date+Relative.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "Date+Relative.swift"; sourceTree = "<group>"; };
 		FA001100000000000000A202 /* PolicyView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PolicyView.swift; sourceTree = "<group>"; };
 		FA001100000000000000B102 /* BiometricAuthService.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = BiometricAuthService.swift; sourceTree = "<group>"; };
@@ -105,6 +104,7 @@
 		FA001100000000000000FE02 /* HorizonFoundationsView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = HorizonFoundationsView.swift; sourceTree = "<group>"; };
 		FA001100000000000000FF02 /* HorizonMomentumView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = HorizonMomentumView.swift; sourceTree = "<group>"; };
 		FA0011000000000000010002 /* PeakWindowCard.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PeakWindowCard.swift; sourceTree = "<group>"; };
+		FA0011000000000000C00502 /* OnboardingConsentView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = OnboardingConsentView.swift; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -366,6 +366,7 @@
 				CODE_SIGN_ENTITLEMENTS = MBI/MBI.entitlements;
 				CODE_SIGN_IDENTITY = "iPhone Developer";
 				CURRENT_PROJECT_VERSION = 1;
+				DEVELOPMENT_TEAM = 9RPB66962W;
 				INFOPLIST_FILE = MBI/Info.plist;
 				INFOPLIST_KEY_CFBundleDisplayName = "Chronos by MBI";
 				INFOPLIST_KEY_LSApplicationCategoryType = "public.app-category.healthcare-fitness";
@@ -446,6 +447,7 @@
 				CODE_SIGN_ENTITLEMENTS = MBI/MBI.entitlements;
 				CODE_SIGN_IDENTITY = "iPhone Developer";
 				CURRENT_PROJECT_VERSION = 1;
+				DEVELOPMENT_TEAM = 9RPB66962W;
 				INFOPLIST_FILE = MBI/Info.plist;
 				INFOPLIST_KEY_CFBundleDisplayName = "Chronos by MBI";
 				INFOPLIST_KEY_LSApplicationCategoryType = "public.app-category.healthcare-fitness";
