@@ -1748,6 +1748,7 @@ struct DriverChip: View {
                             .font(.jost(size: 18, weight: .medium))
                             .foregroundColor(ChronosTheme.gold)
                             .lineLimit(1)
+                            .minimumScaleFactor(0.75)
                     } else {
                         RoundedRectangle(cornerRadius: 3)
                             .fill(ChronosTheme.faint.opacity(0.2))

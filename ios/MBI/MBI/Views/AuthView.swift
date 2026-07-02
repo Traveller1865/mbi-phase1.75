@@ -449,7 +449,14 @@ struct AuthView: View {
                     _ = try await supabase.signIn(email: email, password: password)
                 }
             } catch {
-                errorMessage = error.localizedDescription
+                let raw = error.localizedDescription.lowercased()
+                if raw.contains("422") || raw.contains("already registered") || raw.contains("already been registered") || raw.contains("user already exists") {
+                    errorMessage = "An account with this email already exists. Try signing in instead."
+                } else if raw.contains("invalid login") || raw.contains("invalid credentials") || raw.contains("email not confirmed") || raw.contains("wrong password") {
+                    errorMessage = "Email or password incorrect."
+                } else {
+                    errorMessage = "Something went wrong. Please try again."
+                }
             }
             isLoading = false
         }

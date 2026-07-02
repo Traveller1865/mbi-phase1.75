@@ -398,6 +398,7 @@ struct RedlineDriverChip: View {
                             .font(.jost(size: 13, weight: .light))
                             .foregroundColor(Color(red: 0.965, green: 0.870, blue: 0.870).opacity(0.85))
                             .lineLimit(1)
+                            .minimumScaleFactor(0.75)
                     } else {
                         RoundedRectangle(cornerRadius: 3)
                             .fill(Color(red: 1.0, green: 0.42, blue: 0.42).opacity(0.15))
@@ -410,6 +411,7 @@ struct RedlineDriverChip: View {
                             .font(.jost(size: 11, weight: .light))
                             .foregroundColor(signalColor)
                             .lineLimit(1)
+                            .minimumScaleFactor(0.75)
                     } else {
                         RoundedRectangle(cornerRadius: 3)
                             .fill(Color(red: 1.0, green: 0.42, blue: 0.42).opacity(0.15))
