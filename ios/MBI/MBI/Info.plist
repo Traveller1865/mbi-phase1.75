@@ -20,6 +20,8 @@
 	<string>Chronos uses Face ID to protect your health data when you return to the app.</string>
 	<key>NSHealthShareUsageDescription</key>
 	<string>Mynd &amp; Bodi reads your Apple Watch data to calculate your daily Chronos Resilience Score.</string>
+	<key>NSHealthUpdateUsageDescription</key>
+	<string>Chronos does not write data to Apple Health. This permission is not used.</string>
 	<key>UIAppFonts</key>
 	<array>
 		<string>CormorantGaramond-VariableFont_wght.ttf</string>
@@ -32,9 +34,9 @@
 	<array>
 		<string>UIInterfaceOrientationPortrait</string>
 	</array>
-	<key>UISupportedInterfaceOrientations~ipad</key>
+	<key>UIDeviceFamily</key>
 	<array>
-		<string>UIInterfaceOrientationPortrait</string>
+		<integer>1</integer>
 	</array>
 </dict>
 </plist>
