@@ -1403,19 +1403,23 @@ struct OnboardingCompletionView: View {
                     if let userId = supabase.session?.userId {
                         _ = try? await supabase.loadCurrentUser(userId: userId)
                     }
+                    // Clear the resume checkpoint only AFTER the completion flag is
+                    // refreshed — resetting step to 0 earlier would re-render step 0
+                    // (Claim) under a still-onboarding root gate (the double-flow bug).
+                    UserDefaults.standard.removeObject(forKey: "onboardingStep")
                 }
             }
             .padding(.horizontal, 32)
             .padding(.bottom, 48)
         }
         .onAppear {
-            // onboarding_complete flips on SCREEN LOAD per PDR Section 6.2
+            // onboarding_complete flips on SCREEN LOAD per PDR Section 6.2.
+            // markOnboardingComplete sets the local currentUser flag once the
+            // patch returns, so the root gate can route to the dashboard.
             Task {
                 guard let userId = supabase.session?.userId else { return }
                 try? await supabase.markOnboardingComplete(userId: userId)
             }
-            // Clear resume checkpoint — fresh start on next install
-            UserDefaults.standard.removeObject(forKey: "onboardingStep")
             // Request notification permission after onboarding completes
             Task { await NotificationService.shared.requestPermission() }
         }

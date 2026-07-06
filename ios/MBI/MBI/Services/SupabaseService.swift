@@ -211,6 +211,9 @@ class SupabaseService: ObservableObject {
     func markOnboardingComplete(userId: String) async throws {
         let url = URL(string: "\(Config.supabaseURL)/rest/v1/users?id=eq.\(userId)")!
         try await patchRequest(url: url, body: ["onboarding_complete": true])
+        await MainActor.run {
+            currentUser?.onboardingComplete = true
+        }
     }
 
     @discardableResult
