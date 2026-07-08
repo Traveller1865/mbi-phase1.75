@@ -227,13 +227,13 @@ struct OnboardingClaimView: View {
 
                     VStack(spacing: 8) {
                         Text("Five signals. One score. Updated every morning.")
-                            .font(.jost(size: 19, weight: .light))
+                            .font(.jost(size: 15, weight: .light))
                             .foregroundColor(ChronosTheme.muted)
                         Text("Compared only to you. Never a population.")
-                            .font(.jost(size: 19, weight: .light))
+                            .font(.jost(size: 15, weight: .light))
                             .foregroundColor(ChronosTheme.muted)
                         Text("The more you connect, the smarter it gets.")
-                            .font(.jost(size: 19, weight: .light))
+                            .font(.jost(size: 15, weight: .light))
                             .foregroundColor(ChronosTheme.muted)
                     }
                     .multilineTextAlignment(.center)
@@ -246,17 +246,17 @@ struct OnboardingClaimView: View {
                 // Proof point card
                 VStack(alignment: .leading, spacing: 8) {
                     Text("FOR EXAMPLE")
-                        .font(.jost(size: 13, weight: .medium))
+                        .font(.jost(size: 11, weight: .medium))
                         .foregroundColor(ChronosTheme.gold)
                         .tracking(3)
 
                     Text("\"Your HRV at 42ms is your strongest reading in 3 weeks.\"")
-                        .font(.cormorantItalic(size: 22))
+                        .font(.cormorantItalic(size: 17))
                         .foregroundColor(ChronosTheme.text.opacity(0.85))
                         .lineSpacing(4)
 
                     Text("Same number. Completely different meaning.")
-                        .font(.jost(size: 16, weight: .light))
+                        .font(.jost(size: 13, weight: .light))
                         .foregroundColor(ChronosTheme.muted)
                 }
                 .padding(20)
