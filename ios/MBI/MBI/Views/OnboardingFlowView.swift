@@ -174,131 +174,129 @@ struct OnboardingClaimView: View {
     @State private var appeared = false
 
     var body: some View {
-        VStack(spacing: 0) {
-            Spacer()
-
-            // Logo block
+        ScrollView(showsIndicators: false) {
             VStack(spacing: 0) {
-                ChronosLogoMark()
-                    .frame(width: 72, height: 72)
+                // Logo block
+                VStack(spacing: 0) {
+                    ChronosLogoMark()
+                        .frame(width: 72, height: 72)
+                        .opacity(appeared ? 1 : 0)
+                        .offset(y: appeared ? 0 : 16)
+                        .animation(.easeOut(duration: 0.8).delay(0.1), value: appeared)
+                        .padding(.bottom, 24)
+
+                    VStack(spacing: 8) {
+                        Text("CHRONOS")
+                            .font(.cormorant(size: 40))
+                            .foregroundColor(ChronosTheme.text)
+                            .tracking(10)
+
+                        Text("BY MYND & BODI INSTITUTE")
+                            .font(.jost(size: 9, weight: .light))
+                            .foregroundColor(ChronosTheme.gold)
+                            .tracking(4)
+
+                        Rectangle()
+                            .fill(LinearGradient(
+                                colors: [.clear, ChronosTheme.gold, .clear],
+                                startPoint: .leading, endPoint: .trailing))
+                            .frame(width: 100, height: 1)
+                            .padding(.top, 12)
+                    }
                     .opacity(appeared ? 1 : 0)
-                    .offset(y: appeared ? 0 : 16)
-                    .animation(.easeOut(duration: 0.8).delay(0.1), value: appeared)
-                    .padding(.bottom, 24)
+                    .offset(y: appeared ? 0 : 12)
+                    .animation(.easeOut(duration: 0.8).delay(0.3), value: appeared)
+                }
+                .padding(.top, 60)
 
-                VStack(spacing: 8) {
-                    Text("CHRONOS")
-                        .font(.cormorant(size: 40))
+                // Headline block
+                VStack(spacing: 16) {
+                    Text("You are not average.\nYour wellness score shouldn't be either.")
+                        .font(.cormorant(size: 28, weight: .light))
                         .foregroundColor(ChronosTheme.text)
-                        .tracking(10)
-
-                    Text("BY MYND & BODI INSTITUTE")
-                        .font(.jost(size: 9, weight: .light))
-                        .foregroundColor(ChronosTheme.gold)
-                        .tracking(4)
+                        .multilineTextAlignment(.center)
+                        .lineSpacing(6)
+                        .padding(.horizontal, 32)
+                        .padding(.top, 36)
 
                     Rectangle()
                         .fill(LinearGradient(
-                            colors: [.clear, ChronosTheme.gold, .clear],
+                            colors: [.clear, ChronosTheme.gold.opacity(0.5), .clear],
                             startPoint: .leading, endPoint: .trailing))
-                        .frame(width: 100, height: 1)
-                        .padding(.top, 12)
+                        .frame(width: 60, height: 1)
+
+                    VStack(spacing: 8) {
+                        Text("Five signals. One score. Updated every morning.")
+                            .font(.jost(size: 13, weight: .light))
+                            .foregroundColor(ChronosTheme.muted)
+                        Text("Compared only to you. Never a population.")
+                            .font(.jost(size: 13, weight: .light))
+                            .foregroundColor(ChronosTheme.muted)
+                        Text("The more you connect, the smarter it gets.")
+                            .font(.jost(size: 13, weight: .light))
+                            .foregroundColor(ChronosTheme.muted)
+                    }
+                    .multilineTextAlignment(.center)
+                    .lineSpacing(4)
+                    .padding(.horizontal, 40)
                 }
                 .opacity(appeared ? 1 : 0)
-                .offset(y: appeared ? 0 : 12)
-                .animation(.easeOut(duration: 0.8).delay(0.3), value: appeared)
-            }
+                .animation(.easeOut(duration: 0.7).delay(0.45), value: appeared)
 
-            // Headline block
-            VStack(spacing: 16) {
-                Text("You are not average.\nYour health score shouldn't be either.")
-                    .font(.cormorant(size: 28, weight: .light))
-                    .foregroundColor(ChronosTheme.text)
-                    .multilineTextAlignment(.center)
-                    .lineSpacing(6)
-                    .padding(.horizontal, 32)
-                    .padding(.top, 36)
+                // Proof point card
+                VStack(alignment: .leading, spacing: 8) {
+                    Text("FOR EXAMPLE")
+                        .font(.jost(size: 9, weight: .medium))
+                        .foregroundColor(ChronosTheme.gold)
+                        .tracking(3)
 
-                Rectangle()
-                    .fill(LinearGradient(
-                        colors: [.clear, ChronosTheme.gold.opacity(0.5), .clear],
-                        startPoint: .leading, endPoint: .trailing))
-                    .frame(width: 60, height: 1)
+                    Text("\"Your HRV at 42ms is your strongest reading in 3 weeks.\"")
+                        .font(.cormorantItalic(size: 15))
+                        .foregroundColor(ChronosTheme.text.opacity(0.85))
+                        .lineSpacing(4)
 
-                // Body copy — three lines, each one claim
-                VStack(spacing: 8) {
-                    Text("Five signals. One score. Updated every morning.")
-                        .font(.jost(size: 13, weight: .light))
-                        .foregroundColor(ChronosTheme.muted)
-                    Text("Compared only to you. Never a population.")
-                        .font(.jost(size: 13, weight: .light))
-                        .foregroundColor(ChronosTheme.muted)
-                    Text("The more you connect, the smarter it gets.")
-                        .font(.jost(size: 13, weight: .light))
+                    Text("Same number. Completely different meaning.")
+                        .font(.jost(size: 11, weight: .light))
                         .foregroundColor(ChronosTheme.muted)
                 }
-                .multilineTextAlignment(.center)
-                .lineSpacing(4)
-                .padding(.horizontal, 40)
+                .padding(20)
+                .frame(maxWidth: .infinity, alignment: .leading)
+                .background(
+                    RoundedRectangle(cornerRadius: 12)
+                        .fill(ChronosTheme.surface)
+                        .overlay(
+                            RoundedRectangle(cornerRadius: 12)
+                                .stroke(ChronosTheme.border, lineWidth: 1)
+                        )
+                        .overlay(
+                            Rectangle()
+                                .fill(ChronosTheme.gold)
+                                .frame(width: 2)
+                                .clipShape(
+                                    RoundedRectangle(cornerRadius: 12)
+                                ),
+                            alignment: .leading
+                        )
+                )
+                .padding(.horizontal, 32)
+                .padding(.top, 28)
+                .opacity(appeared ? 1 : 0)
+                .animation(.easeOut(duration: 0.6).delay(0.65), value: appeared)
+
+                // CTA block
+                VStack(spacing: 12) {
+                    ChronosPrimaryButton(title: "Get Started", action: onNext)
+
+                    Text("Takes about 2 minutes.")
+                        .font(.jost(size: 11, weight: .light))
+                        .foregroundColor(ChronosTheme.faint)
+                }
+                .padding(.horizontal, 32)
+                .padding(.top, 40)
+                .padding(.bottom, 52)
+                .opacity(appeared ? 1 : 0)
+                .animation(.easeOut(duration: 0.6).delay(0.8), value: appeared)
             }
-            .opacity(appeared ? 1 : 0)
-            .animation(.easeOut(duration: 0.7).delay(0.45), value: appeared)
-
-            // Proof point card
-            VStack(alignment: .leading, spacing: 8) {
-                Text("FOR EXAMPLE")
-                    .font(.jost(size: 9, weight: .medium))
-                    .foregroundColor(ChronosTheme.gold)
-                    .tracking(3)
-
-                Text("\"Your HRV at 42ms is your strongest reading in 3 weeks.\"")
-                    .font(.cormorantItalic(size: 15))
-                    .foregroundColor(ChronosTheme.text.opacity(0.85))
-                    .lineSpacing(4)
-
-                Text("Same number. Completely different meaning.")
-                    .font(.jost(size: 11, weight: .light))
-                    .foregroundColor(ChronosTheme.muted)
-            }
-            .padding(20)
-            .frame(maxWidth: .infinity, alignment: .leading)
-            .background(
-                RoundedRectangle(cornerRadius: 12)
-                    .fill(ChronosTheme.surface)
-                    .overlay(
-                        RoundedRectangle(cornerRadius: 12)
-                            .stroke(ChronosTheme.border, lineWidth: 1)
-                    )
-                    .overlay(
-                        // Gold left border
-                        Rectangle()
-                            .fill(ChronosTheme.gold)
-                            .frame(width: 2)
-                            .clipShape(
-                                RoundedRectangle(cornerRadius: 12)
-                            ),
-                        alignment: .leading
-                    )
-            )
-            .padding(.horizontal, 32)
-            .padding(.top, 28)
-            .opacity(appeared ? 1 : 0)
-            .animation(.easeOut(duration: 0.6).delay(0.65), value: appeared)
-
-            Spacer()
-
-            // CTA block
-            VStack(spacing: 12) {
-                ChronosPrimaryButton(title: "Get Started", action: onNext)
-
-                Text("Takes about 2 minutes.")
-                    .font(.jost(size: 11, weight: .light))
-                    .foregroundColor(ChronosTheme.faint)
-            }
-            .padding(.horizontal, 32)
-            .padding(.bottom, 52)
-            .opacity(appeared ? 1 : 0)
-            .animation(.easeOut(duration: 0.6).delay(0.8), value: appeared)
         }
         .onAppear { appeared = true }
     }
