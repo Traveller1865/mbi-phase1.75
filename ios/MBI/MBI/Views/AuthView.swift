@@ -109,7 +109,7 @@ struct AuthView: View {
     @State private var email           = ""
     @State private var password        = ""
     @State private var confirmPassword = ""
-    @State private var isSignUp        = true    // default to sign-up for new installs
+    @State private var isSignUp        = false   // default to sign-in; new users toggle to Create Account
     @State private var isLoading       = false
     @State private var errorMessage: String?
     @State private var appeared        = false

@@ -210,7 +210,7 @@ struct OnboardingClaimView: View {
                 .padding(.top, 60)
 
                 // Headline block
-                VStack(spacing: 16) {
+                VStack(spacing: 24) {
                     Text("You are not average.\nYour wellness score shouldn't be either.")
                         .font(.cormorant(size: 28, weight: .light))
                         .foregroundColor(ChronosTheme.text)
@@ -227,13 +227,13 @@ struct OnboardingClaimView: View {
 
                     VStack(spacing: 8) {
                         Text("Five signals. One score. Updated every morning.")
-                            .font(.jost(size: 13, weight: .light))
+                            .font(.jost(size: 19, weight: .light))
                             .foregroundColor(ChronosTheme.muted)
                         Text("Compared only to you. Never a population.")
-                            .font(.jost(size: 13, weight: .light))
+                            .font(.jost(size: 19, weight: .light))
                             .foregroundColor(ChronosTheme.muted)
                         Text("The more you connect, the smarter it gets.")
-                            .font(.jost(size: 13, weight: .light))
+                            .font(.jost(size: 19, weight: .light))
                             .foregroundColor(ChronosTheme.muted)
                     }
                     .multilineTextAlignment(.center)
@@ -246,17 +246,17 @@ struct OnboardingClaimView: View {
                 // Proof point card
                 VStack(alignment: .leading, spacing: 8) {
                     Text("FOR EXAMPLE")
-                        .font(.jost(size: 9, weight: .medium))
+                        .font(.jost(size: 13, weight: .medium))
                         .foregroundColor(ChronosTheme.gold)
                         .tracking(3)
 
                     Text("\"Your HRV at 42ms is your strongest reading in 3 weeks.\"")
-                        .font(.cormorantItalic(size: 15))
+                        .font(.cormorantItalic(size: 22))
                         .foregroundColor(ChronosTheme.text.opacity(0.85))
                         .lineSpacing(4)
 
                     Text("Same number. Completely different meaning.")
-                        .font(.jost(size: 11, weight: .light))
+                        .font(.jost(size: 16, weight: .light))
                         .foregroundColor(ChronosTheme.muted)
                 }
                 .padding(20)
@@ -279,13 +279,13 @@ struct OnboardingClaimView: View {
                         )
                 )
                 .padding(.horizontal, 32)
-                .padding(.top, 28)
+                .padding(.top, 24)
                 .opacity(appeared ? 1 : 0)
                 .animation(.easeOut(duration: 0.6).delay(0.65), value: appeared)
 
                 // CTA block
                 VStack(spacing: 12) {
-                    ChronosPrimaryButton(title: "Get Started", action: onNext)
+                    ChronosPrimaryButton(title: "Get Started", fontSize: 20, action: onNext)
 
                     Text("Takes about 2 minutes.")
                         .font(.jost(size: 11, weight: .light))
@@ -1631,6 +1631,7 @@ private struct DataTierRow: View {
 struct ChronosPrimaryButton: View {
     let title: String
     var isLoading: Bool = false
+    var fontSize: CGFloat = 13
     let action: () -> Void
 
     var body: some View {
@@ -1644,7 +1645,7 @@ struct ChronosPrimaryButton: View {
                     ProgressView().tint(ChronosTheme.ink)
                 } else {
                     Text(title)
-                        .font(.jost(size: 13, weight: .medium))
+                        .font(.jost(size: fontSize, weight: .medium))
                         .foregroundColor(ChronosTheme.ink)
                         .tracking(2)
                         .textCase(.uppercase)
