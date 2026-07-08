@@ -250,7 +250,7 @@ struct OnboardingClaimView: View {
                         .foregroundColor(ChronosTheme.gold)
                         .tracking(3)
 
-                    Text("\"Your HRV at 42ms is your strongest reading in 3 weeks.\"")
+                    Text("\"Your Chronos score is 96. That's your strongest reading in two weeks. Keep the momentum going.\"")
                         .font(.cormorantItalic(size: 17))
                         .foregroundColor(ChronosTheme.text.opacity(0.85))
                         .lineSpacing(4)
@@ -285,7 +285,7 @@ struct OnboardingClaimView: View {
 
                 // CTA block
                 VStack(spacing: 12) {
-                    ChronosPrimaryButton(title: "Get Started", fontSize: 20, action: onNext)
+                    ChronosPrimaryButton(title: "Get Started", fontSize: 15, action: onNext)
 
                     Text("Takes about 2 minutes.")
                         .font(.jost(size: 11, weight: .light))
