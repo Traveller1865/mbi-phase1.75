@@ -312,11 +312,11 @@ struct OnboardingFiveSignalsView: View {
     let onSkip: () -> Void
 
     let signals: [(String, String, String)] = [
-        ("waveform.path.ecg",  "Heart Rate Variability",  "How well your nervous system recovered overnight."),
-        ("heart",              "Resting Heart Rate",       "How hard your heart is working at rest. A stress signal."),
-        ("lungs",              "Respiratory Rate",         "Your earliest warning signal for illness and overload."),
-        ("moon.zzz",           "Sleep Duration & Quality", "The window where your body repairs itself."),
-        ("figure.walk",        "Steps & Active Minutes",   "How much you moved and how your body responded."),
+        ("waveform.path.ecg",  "Heart Rate Variability",  "Whether your body is recovered and ready, or still carrying yesterday's load."),
+        ("heart",              "Resting Heart Rate",       "How hard your heart is working while you sleep — a quiet signal of your body's true state."),
+        ("lungs",              "Respiratory Rate",         "The first thing that shifts when your body is under strain. Often changes before you feel it."),
+        ("moon.zzz",           "Sleep Duration & Quality", "Not just how long you slept — whether your body actually used that time to repair."),
+        ("figure.walk",        "Steps & Active Minutes",   "How much strain you applied today, and what your body will need to restore tonight."),
     ]
 
     var body: some View {
